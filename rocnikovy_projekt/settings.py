@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-0*x0y@lapyl2+5-l4b05gq^1auag-27r$#2kfxw2kuy4f&vt8(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['www.firma-intranet.great-site.net', 'intranet-tlij.onrender.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['www.firma-intranet.great-site.net', 'intranet-tlij.onrender.com', 'localhost', '127.0.0.1', "0.0.0.0"]
 
 
 
