@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}Mail{% endblock %}
+
+{% block content %}
+<style>
+    .form-container {
+        display: flex;
+        justify-content: center;
+        padding: 20px;
+        font-family: 'Lato', sans-serif;
+        color: #2C3E50;
+    }
+    .form-box {
+        background-color: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        width: 50%;
+    }
+    .form-group {
+        font-size: 18px;
+        margin-bottom: 15px;
+    }
+    label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    input, textarea {
+        width: 95%;
+        padding: 10px;
+        margin-top: 5px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
+    textarea {
+        resize: none; 
+        height: 150px; 
+    }
+    button {
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        background-color: #93BFCF;
+        color: #2C3E50;
+        width: 30%;
+        margin:20px auto;
+        margin-top:25px;
+        margin-bottom:2px;
+        display:block;
+        font-size:18px;
+        transition: background-color 0.3s ease, transform 0.3s ease;
+    }
+    button:hover {
+        background-color: #6096B4;
+        color: white;
+        transform: scale(1.05);
+    }
+    .result-message {
+        color: green;
+        margin-top: 20px;
+        text-align:center;
+    }
+    h1 {
+        text-align:center;
+    }
+    input[type="file"]{
+        width:100%;
+    }
+    input[type="file"]::file-selector-button {
+        border-radius: 4px;
+        padding: 0 16px;
+        height: 25px;
+        cursor: pointer;
+        background-color: #add8e6;
+        border: 1px solid rgba(0, 0, 0, 0.16);
+        box-shadow: 0px 1px 0px rgba(0, 0, 0, 0.05);
+        margin-right: 16px;
+        transition: background-color 200ms;
+    }   
+    input[type="file"]::file-selector-button:hover {
+        background-color: #a0c8e0;
+    }
+    input[type="file"]::file-selector-button:active {
+        background-color: #e5e7eb;
+    }
+    </style>
+
+<div class="form-container">
+    <div class="form-box">
+        <h1>Poslať mail</h1>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="address">Komu:</label>
+                <input id="address" type="email" name="address" required />
+            </div>
+
+            <div class="form-group">
+                <label for="subject">Predmet:</label>
+                <input id="subject" name="subject" value="Od: {{ user.email }}" required />
+            </div>
+
+            <div class="form-group">
+                <label for="message">Správa:</label>
+                <textarea id="message" name="message" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <input type="file" name="file" id="id_file">
+            </div>
+
+            <button type="submit">Odoslať</button>
+        </form>
+
+        {% if result %}
+            <p class="result-message">{{ result }}</p>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

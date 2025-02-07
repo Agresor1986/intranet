@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %}Ankety{% endblock %}
+{% load static %}
+{% block content %}
+<style>
+    .polls {
+        display: flex;
+        justify-content: center;
+        padding: 20px;
+        font-family: 'Lato', sans-serif;
+        color: #2C3E50;
+    }
+    .plls {
+        background-color: #7A9BAF;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        width: 80%;
+    }
+    .btn {
+        padding: 10px;
+        background-color: #93BFCF;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        color: #2C3E50;
+        font-size: 16px;
+        transition: background-color 0.3s ease, transform 0.3s ease;
+    }
+    .btn:hover {
+        background-color: #6096B4;
+        color:white;
+        transform: scale(1.05);
+    }
+    .btn-create {
+        margin-bottom: 20px;
+        margin-left: auto;
+    }
+    .plls-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: space-around;
+    }
+    .av_polls {
+        background-color: #f9f9f9;
+        border: 3px solid #ccd0d9;
+        border-radius: 8px;
+        padding: 20px;
+        width: calc(50% - 20px);
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    h1 {
+        text-align: left;
+        margin-bottom: 25px;
+        display: inline-block;
+        margin-top:10px;
+    }
+    h5 {
+        font-size: 16px;
+        margin-top: 0px;
+        margin-bottom: 15px;
+        color: #333;
+    }
+    p {
+        margin-bottom: 15px;
+        color: #666;
+    }
+    .vote-timestamp {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .btn-primary {
+        margin: 0;
+    }
+    .timestamp {
+        margin: 0;
+        color: #555;
+        font-size: 14px;
+    }
+    .results {
+        margin-top: 15px;
+        font-size: 14px;
+        color: #555;
+    }
+</style>
+
+{% if request.user.is_authenticated %}
+    <div class="polls">
+        <div class="plls">
+            <div style="display: flex; align-items: center;">
+                <h1>Dostupné ankety</h1>
+                {% if request.user.is_superuser or request.user.groups.all.0.name == 'manazer' %}
+                    <a href="{% url 'PollApp:create_polls' %}" class="btn btn-create">Vytvoriť novú anketu</a>
+                {% endif %}
+            </div>
+            <div class="plls-grid">
+                {% for poll in polls %}
+                    <div class="av_polls">
+                        <h5>{{ poll.name }}</h5>
+                        {% if poll.total_votes > 0 %}
+                            <div id="piechart-{{ poll.id }}"></div>
+                        {% else %}
+                            <p>Zatiaľ žiadne hlasy. Buďte prvý kto zahlasuje!</p>
+                        {% endif %}
+                        <div class="vote-timestamp">
+                            <a href="{% url 'PollApp:poll' poll.id %}" class="btn btn-primary">Hlasovať</a>
+                            <p class="timestamp">{{ poll.timestamp|date:"d.m.Y H:i" }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+        google.charts.load('current', { 'packages': ['corechart'] });
+        google.charts.setOnLoadCallback(initCharts);
+
+        function initCharts() {
+            {% for poll in polls %}
+                var pollResults = [
+                    ["Choice", "Vote Count"]
+                    {% for choice in poll.choices.all %}
+                        , ["{{ choice.name|escapejs }}", {{ choice.vote_count }}]
+                    {% endfor %}
+                ];
+                drawChart('piechart-{{ poll.id }}', pollResults);
+            {% endfor %}
+        }
+
+        function drawChart(elementId, data) {
+            var dataTable = google.visualization.arrayToDataTable(data);
+            var options = { width: 250, height: 150 };
+            var chart = new google.visualization.PieChart(document.getElementById(elementId));
+            chart.draw(dataTable, options);
+        }
+    </script>
+{% else %}
+    <p>Please log in to see the polls.</p>
+{% endif %}
+{% endblock %}

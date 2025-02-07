@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% block title %}Anketa{% endblock %}
+{% block content %}
+<style>
+    .poll {
+        font-family: 'Lato', sans-serif;
+        color: #2C3E50;
+        display: flex; 
+        justify-content: center; 
+        margin-top: 5px;
+    }
+    .pll {
+        border: 4px solid #7A9BAF;
+        background-color: white; 
+        padding: 20px; 
+        border-radius: 8px; 
+        box-shadow: 0 0 10px rgba(0,0,0,0.1); 
+        width: 50%;
+    }
+    .btn {
+      transition: background-color 0.3s ease, transform 0.3s ease;
+      border-radius: 5px;
+      display: inline-block;
+      background-color: #93BFCF;
+      color: #2C3E50;
+      padding: 11px;
+      text-align: center;
+      text-decoration: none;
+      font-size: 17px;
+      cursor: pointer;
+      border:none;
+      padding-left: 17px;
+      padding-right: 17px;
+    }
+    .btn:hover {
+      background-color: #6096B4;
+      color: white;
+      transform: scale(1.05);
+    }
+    .alert {
+        margin-top:10px;
+        margin-bottom:10px;        
+    }
+    #error-message { 
+        color: red; 
+        display: none;
+        margin-top:10px;
+        margin-bottom:10px;  
+    }
+    .btn-exit  {
+        float:right;
+     }
+</style>
+{% if request.user.is_authenticated %}
+  <div class="poll">
+    <div class="pll">
+
+      <h2>{{ poll.name }}</h2>
+      <i>
+        <h6>{{ poll.description }}</h6>
+      </i>
+      <hr class="my-4">
+
+      {% if user_vote %}
+        <div class="alert alert-info">
+          Už ste hlasovali pre možnosť: <strong>{{ user_vote.choice.name }}</strong> Nižšie môžte zmeniť svoj hlas. 
+        </div>
+      {% endif %}
+      {% if success_message %}
+        <div class="alert alert-success">{{ success_message }}</div>
+      {% endif %}
+
+      <form method="post" onsubmit="return validateForm()">
+        {% csrf_token %}
+        {% for choice in poll.choices.all %}
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="choice_id" id="{{ choice.id }}" value="{{ choice.id }}"
+          {% if user_vote and user_vote.choice.id == choice.id %}checked{% endif %}>
+          <label class="form-check-label" for="{{ choice.id }}">
+            {{ choice.name }}
+          </label>
+        </div>
+        {% endfor %}
+        <hr class="my-4">
+        <button class="btn btn-vote">Hlasovať</button>
+        <a href="{% url 'PollApp:polls' %}" class="btn btn-exit">Naspäť</a>
+      </form>
+
+      <div id="error-message">
+        Prosím vyberte si možnosť predtým ako budete hlasovať.
+      </div>
+
+      <hr class="my-4">
+      <h4>Výsledky:</h4>
+      <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+      <div id="piechart"></div>
+      <script type="text/javascript">
+        var poll_results = {{ poll_results|safe }};
+        google.charts.load('current', { 'packages': ['corechart'] });
+        google.charts.setOnLoadCallback(drawChart);
+        function drawChart() {
+          poll_results.unshift(["Choice", "Vote Count"]);
+          var data = google.visualization.arrayToDataTable(poll_results);
+          var options = { 'width': 500, 'height': 350 };
+          var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+          chart.draw(data, options);
+        }
+      </script>
+
+    </div>
+  </div>
+{% else %}
+  <p>Please log in.</p>
+{% endif %}
+
+<script>
+  function validateForm() {
+    var choices = document.getElementsByName('choice_id');
+    var isChecked = false;
+    for (var i = 0; i < choices.length; i++) {
+      if (choices[i].checked) {
+        isChecked = true;
+        break;
+      }
+    }
+
+    if (!isChecked) {
+      document.getElementById('error-message').style.display = 'block';
+      return false; 
+    }
+
+    document.getElementById('error-message').style.display = 'none';
+    return true; 
+  }
+</script>
+
+{% endblock %}
+

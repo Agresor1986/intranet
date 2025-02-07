@@ -1,0 +1,153 @@
+from datetime import datetime, timedelta
+import calendar
+from django.shortcuts import render, get_object_or_404
+from django.http import HttpResponse, HttpResponseRedirect
+from django.views import generic
+from django.utils.safestring import mark_safe
+from .forms import EventForm
+from .models import Event
+from .utils import Calendar
+from django.urls import reverse
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from notifications.models import Notification
+from django.utils.timezone import now
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class CalendarView(LoginRequiredMixin, generic.ListView):
+    model = Event
+    template_name = 'calendar.html'
+
+    def get_queryset(self):
+        # Kontrola začiatku eventov
+        check_event_start_notifications()
+        return Event.objects.filter(user=self.request.user) | Event.objects.filter(is_global=True)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        d = get_date(self.request.GET.get('month', None))
+        cal = Calendar(d.year, d.month, user=self.request.user)
+        html_cal = cal.formatmonth(withyear=True)
+        context['calendar'] = mark_safe(html_cal)
+        context['prev_month'] = prev_month(d)
+        context['next_month'] = next_month(d)
+        return context
+
+def get_date(req_month):
+    if req_month:
+        year, month = (int(x) for x in req_month.split('-'))
+        return datetime(year, month, day=1)
+    return datetime.today()
+
+def prev_month(d):
+    first = d.replace(day=1)
+    prev_month = first - timedelta(days=1)
+    return f'month={prev_month.year}-{prev_month.month}'
+
+def next_month(d):
+    days_in_month = calendar.monthrange(d.year, d.month)[1]
+    last = d.replace(day=days_in_month)
+    next_month = last + timedelta(days=1)
+    return f'month={next_month.year}-{next_month.month}'
+
+@login_required
+def event(request, event_id=None):
+    instance = get_object_or_404(Event, pk=event_id) if event_id else Event(user=request.user)
+    view_only = instance.is_global and not request.user.is_staff
+
+    # Označenie notifikácie ako prečítanej pri zobrazení eventu
+    if event_id:
+        event_url = reverse('cal:event_edit', kwargs={'event_id': event_id})
+        Notification.objects.filter(user=request.user, url=event_url).delete()
+
+    if request.POST and not view_only:
+        form = EventForm(request.POST, instance=instance)
+        if form.is_valid():
+            event = form.save(commit=False)
+            if request.user.is_staff and 'is_global' in request.POST:
+                event.is_global = True
+
+            if event.start_time >= event.end_time:
+                messages.error(request, "Začiatok udalosti musí byť skorej ako koniec.")
+                return render(request, 'event.html', {'form': form, 'view_only': view_only})
+            event.user = request.user
+            event.save()
+
+            # Notifikácia pre všetkých používateľov okrem admina, ktorý event vytvoril
+            if request.user.is_staff and event.is_global:
+                event_url = reverse('cal:event_edit', kwargs={'event_id': event.id})
+                for user in User.objects.exclude(id=request.user.id):
+                    Notification.objects.create(
+                        user=user,
+                        message=f'Nová udalosť <strong>"{event.title}"</strong> bola pridaná!',
+                        url=event_url
+                    )
+
+            return HttpResponseRedirect(reverse('cal:calendar'))
+    else:
+        form = EventForm(instance=instance)
+
+    return render(request, 'event.html', {'form': form, 'view_only': view_only})
+
+
+def check_event_start_notifications():
+    """ Skontroluje, či práve nezačal nejaký event a pošle notifikáciu """
+    now_time = now()
+    
+    # Notifikácia presne v čase začiatku eventu (iba pre vlastné eventy alebo globálne)
+    events_to_notify_now = Event.objects.filter(
+        start_time__lte=now_time, 
+        start_time__gte=now_time - timedelta(minutes=1)
+    )
+    for event in events_to_notify_now:
+        event_url = reverse('cal:event_edit', kwargs={'event_id': event.id})
+        if not Notification.objects.filter(user=event.user, url=event_url).exists():
+            if event.is_global:
+                for user in User.objects.all():
+                    Notification.objects.create(
+                        user=user,
+                        message=f'Dôležitá udalosť <strong>"{event.title}"</strong> teraz začína!',
+                        url=event_url
+                    )
+            else:
+                Notification.objects.create(
+                    user=event.user,
+                    message=f'Vaša udalosť <strong>"{event.title}"</strong> teraz začína!',
+                    url=event_url
+                )
+
+    # Notifikácia, že event začína dnes (iba pre vlastné eventy alebo globálne)
+    events_starting_today = Event.objects.filter(start_time__date=now_time.date())
+    for event in events_starting_today:
+        if not event.notification_sent_today:  # Kontrola, či notifikácia už bola odoslaná
+            event_url = reverse('cal:event_edit', kwargs={'event_id': event.id})
+            if event.is_global:
+                for user in User.objects.all():
+                    Notification.objects.create(
+                        user=user,
+                        message=f'Dôležitá udalosť <strong>"{event.title}"</strong> dnes začína!',
+                        url=event_url
+                    )
+            else:
+                Notification.objects.create(
+                    user=event.user,
+                    message=f'Vaša udalosť <strong>"{event.title}"</strong> dnes začína!',
+                    url=event_url
+                )
+            # Označenie, že notifikácia bola odoslaná
+            event.notification_sent_today = True
+            event.save()
+
+
+@login_required
+def delete_event(request, event_id):
+    event = get_object_or_404(Event, pk=event_id)
+    if event.user != request.user:
+        messages.error(request, "You are not authorized to delete this event.")
+        return HttpResponseRedirect(reverse('cal:calendar'))
+    event.delete()
+    return HttpResponseRedirect(reverse('cal:calendar'))
+

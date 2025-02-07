@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}Vložiť dokument{% endblock %}
+{% block content %}
+<style>
+    .upload-documents {
+        display: flex;
+        justify-content: center;
+        padding: 20px;
+    }
+    .upload-container {
+        border: 4px solid #7A9BAF;
+        font-family: 'Lato', sans-serif;
+        color: #2C3E50;
+        background-color: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        width: 350px;
+        height: 200px;  
+        text-align: center;
+    }
+    h1 {
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+    form {
+        margin-bottom: 20px;
+    }
+    .btn {
+        transition: background-color 0.3s ease, transform 0.3s ease;
+        border-radius: 5px;
+        display: inline-block;
+        background-color: #93BFCF;
+        color: #2C3E50;
+        padding: 11px;
+        text-align: center;
+        text-decoration: none;
+        font-size: 17px;
+        cursor: pointer;
+        border: none;
+        padding-left: 17px;
+        padding-right: 17px;
+    }
+    .btn:hover {
+        background-color: #6096B4;
+        color: white;
+        transform: scale(1.05);
+    }
+    .btn-upload {
+        margin-top: 10px;
+        float: left;
+    }
+    .btn-back {
+        margin-top: 5.5px;
+        float: right;
+    }
+    input[type="file"]::file-selector-button {
+        border-radius: 4px;
+        padding: 0 16px;
+        height: 35px;
+        cursor: pointer;
+        background-color: #add8e6;
+        border: 1px solid rgba(0, 0, 0, 0.16);
+        box-shadow: 0px 1px 0px rgba(0, 0, 0, 0.05);
+        margin-right: 16px;
+        transition: background-color 200ms;
+    }   
+    input[type="file"]::file-selector-button:hover {
+        background-color: #a0c8e0;
+    }
+    input[type="file"]::file-selector-button:active {
+        background-color: #e5e7eb;
+    }
+
+    /* Vzdialenosť medzi polami */
+    form div {
+        margin-bottom: 18px;  /* Pridanie väčšieho priestoru medzi poľami */
+    }
+</style>
+
+<div class="upload-documents">
+    <div class="upload-container">
+        <h1>Vložiť dokument</h1>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form }}
+            <button type="submit" class="btn btn-upload">Vložiť</button>
+        </form>
+        <a href="{% url 'document_list' %}" class="btn btn-back">Naspäť</a>
+    </div>
+</div>
+{% endblock %}

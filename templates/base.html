@@ -1,0 +1,181 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.png' %}">
+    <meta charset="UTF-8">
+    <title>{% block title %}Domov{% endblock %}</title>
+    <style>
+        body {
+            background-color: #BCCCDC;
+            margin: 0;
+            font-family: 'Lato', sans-serif;
+        }
+
+        h1.username {
+            text-align: center;
+            margin: 10px 0;
+            color: #2C3E50;
+            font-size: 18px;
+        }
+
+        nav.sidebar {
+            width: 220px;
+            background-color: #93BFCF;
+            padding: 15px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            box-shadow: 2px 0 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .logo img {
+            max-width: 70px;
+            margin-bottom: 15px;
+        }
+
+        .date-time {
+            text-align: center;
+            font-size: 16px;
+            color: #2C3E50;
+            margin-bottom: 15px;
+        }
+
+        h2.nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            align-items: center;
+        }
+
+        .nav-button {
+            display: block;
+            background-color: #BDCDD6;
+            color: #6096B4;
+            padding: 12px;
+            text-align: center;
+            text-decoration: none;
+            border: none;
+            width: 90%;
+            font-size: 18px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .nav-button:hover {
+            background-color: #6096B4;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .logout-button {
+            cursor:pointer;
+            background-color: #FF6F61;
+            color: #FFFFFF;
+            padding: 10px;
+            text-align: center;
+            text-decoration: none;
+            border: none;
+            width: 100%;
+            font-size: 16px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            margin-top: auto;
+        }
+
+        .logout-button:hover {
+            background-color: #C75F4B;
+            transform: scale(1.05);
+        }
+
+        .content-area {
+            margin-left: 250px; 
+        }
+
+        .logging {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .logging h2 {
+            color: #2C3E50;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        .logging .nav-button {
+            background-color: #6096B4;
+            color: #FFFFFF;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 8px;
+            width: auto;
+        }
+
+        .logging .nav-button:hover {
+            background-color: #93BFCF;
+        }
+    </style>
+</head>
+<body>
+    {% if user.is_authenticated %}
+    <nav class="sidebar">
+        <div class="logo">
+            <img src="{% static 'images/logo-firmy.png' %}" alt="Logo">
+        </div>
+        <h1 class="username">Vitaj {{ user.username }}</h1>
+        <div class="date-time" id="date-time"></div>
+        <h2 class="nav-links">
+            <a href="{% url 'home' %}" class="nav-button">Domov</a>
+            <a href="{% url 'chat' %}" class="nav-button">Chat</a>
+            <a href="{% url 'cal:calendar' %}" class="nav-button">Kalendár</a>
+            <a href="{% url 'forum' %}" class="nav-button">Diskusné fórum</a>
+            <a href="{% url 'PollApp:polls' %}" class="nav-button">Ankety</a>
+            <a href="{% url 'document_list' %}" class="nav-button">Dokumenty</a>
+            <a href="{% url 'send_mail_page' %}" class="nav-button">Mail</a>
+            <form action="{% url 'logout' %}" method="post" class="logout-form">
+                {% csrf_token %}
+                <button type="submit" class="logout-button">Odhlásiť sa</button>
+            </form>
+        </h2>
+    </nav>
+    {% else %}
+    <div class="logging">
+        <h2>Nie ste prihlásený</h2>
+        <a href="{% url 'login' %}" class="nav-button">Prihlásiť sa</a>
+    </div>
+    {% endif %}
+
+    <div class="content-area">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <script>
+        function updateDateTime() {
+            const dateTime = new Date();
+            const date = dateTime.toLocaleDateString();
+            const time = dateTime.toLocaleTimeString();
+            const dateTimeElement = document.getElementById('date-time');
+            if (dateTimeElement) {
+                dateTimeElement.innerHTML = date + ' ' + time;
+            }
+        }
+
+        setInterval(updateDateTime, 1000);
+        updateDateTime();
+ 
+    </script>
+</body>
+</html>
+

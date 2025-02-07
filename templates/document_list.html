@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}Dokumenty{% endblock %}
+
+{% block content %}
+<style>
+    .documents {
+        display: flex;
+        justify-content: center;
+        padding: 20px;
+        font-family: 'Lato', sans-serif;
+        color: #2C3E50;
+    }
+    .docs-container {  
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        width: 70%;
+        background-color: #7A9BAF;
+    }
+    .btn {
+        padding: 10px;
+        background-color: #93BFCF;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        color: #2C3E50;
+        font-size: 16px;
+        transition: background-color 0.3s ease, transform 0.3s ease;
+    }
+    .btn:hover {
+        background-color: #6096B4;
+        color:white;
+        transform: scale(1.05);
+    }
+    .btn-upload {
+        margin-bottom: 10px;
+        margin-left: auto;
+    }
+    .btn-delete {
+        background-color: #ff6b6b;
+        margin-left: 10px;
+        color:white;
+    }
+    .btn-delete:hover {
+        background-color: #ff4d4d;
+    }
+    .doc-item {
+        background-color: #f9f9f9;
+        border: 3px solid #ccd0d9;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    h2 {
+        text-align: left;
+        margin-bottom: 30px;
+        display: inline-block;
+    }
+    h2 + .btn-upload {
+        display: inline-block;
+        margin-left: auto;
+    }
+    .doc-title {
+        font-size: 16px;
+        color: #333;
+        margin-bottom: 10px;
+        text-decoration: none;
+        color: #0D92F4;
+    }
+    .doc-title:hover {
+        text-decoration: underline;
+    }
+    .doc-info {
+        font-size: 14px;
+        color: #666;
+        margin-top: 5px;
+    }
+    ul {
+        list-style-type: none;
+        padding: 0;
+    }
+</style>
+
+<div class="documents">
+    <div class="docs-container">
+        <div style="display: flex; align-items: center;">
+            <h2>Dokumenty</h2>
+            <a href="{% url 'upload_document' %}" class="btn btn-upload">Vložiť dokument</a>
+        </div>
+        <ul>
+            {% for document in documents %}
+                <li class="doc-item">
+                    <div>
+                        <a href="{{ document.file.url }}" class="doc-title" target="_blank">{{ document.title }}</a>
+                        <div class="doc-info">{{ document.uploaded_at|date:"d.m.Y H:i" }}</div>
+                    </div>
+                    <!-- Tlačidlo s priamym HTML potvrdením -->
+                    <form action="{% url 'delete_document' document.id %}" method="post" style="margin: 0;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-delete" onclick="return confirm('Ste si istý, že chcete vymazať tento dokument');">Vymazať</button>
+                    </form>
+                </li>
+            {% empty %}
+                <li class="doc-item">Žiadne dokumenty k dispozícií</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

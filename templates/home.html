@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Domov{% endblock %}
+{% block content %}
+    <style>
+        .content-area {
+            margin-left: 120px; 
+            background-color: #BCCCDC;
+            padding: 20px;
+            font-family: 'Lato', sans-serif;
+        }
+
+        .section-title {
+            text-align: center;
+            color: #2C3E50;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .mark-all-button {
+            display: block;
+            background-color: #93BFCF;
+            color: #2C3E50;
+            padding: 12px;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 8px;
+            width: 250px;
+            font-size: 18px;
+            margin: 0 auto 20px;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .mark-all-button:hover {
+            background-color: #6096B4;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .notification-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .notification-item {
+            background-color: #fff;
+            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease;
+        }
+
+        .notification-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .notification-message {
+            color: #2C3E50;
+            font-size: 16px;
+        }
+
+        .go-to-link {
+            color: #6096B4;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .go-to-link:hover {
+            text-decoration: underline;
+        }
+
+        .timestamp {
+            font-size: 14px;
+            color: #808080;
+        }
+
+        .mark-read-link {
+            background-color: #BDCDD6;
+            color: #6096B4;
+            padding: 8px 16px;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .mark-read-link:hover {
+            background-color: #6096B4;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .no-notifications {
+            text-align: center;
+            color: #2C3E50;
+            font-size: 18px;
+        }
+    </style>
+    
+    <div class="content-area">
+        <h2 class="section-title">Vaše upozornenia</h2>
+        <a href="{% url 'mark_all_as_read' %}" class="mark-all-button">Označiť všetko ako prečítané</a>
+        <ul class="notification-list">
+            {% for notification in notifications %}
+                <li class="notification-item">
+                    {% if notification.url %}
+                    <span class="notification-message">{{ notification.message|safe }} <a href="{{ notification.url }}" class="go-to-link">Pozrieť</a></span>
+                    {% else %}
+                        <span class="notification-message">{{ notification.message|safe }}</span>
+                    {% endif %}
+                    <span class="timestamp">({{ notification.timestamp|date:"d.m.Y H:i"  }})</span>
+                    <a href="{% url 'mark_as_read' notification.id %}" class="mark-read-link">Označiť ako prečítané</a>
+                </li>
+            {% empty %}
+                <li class="no-notifications">Žiadne nové upozornenia</li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock %}

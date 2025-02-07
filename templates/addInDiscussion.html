@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Pridať komentár{% endblock %}
+
+{% block content %}
+    <style>
+        .btn {
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            border-radius: 5px;
+            display: inline-block;
+            background-color: #93BFCF;
+            color: #2C3E50;
+            padding: 11px;
+            text-align: center;
+            text-decoration: none;
+            font-size: 17px;
+            cursor: pointer;
+            border:none;
+            padding-left: 17px;
+            padding-right: 17px;
+        }
+        .btn:hover {
+            background-color: #6096B4;
+            color: white;
+            transform: scale(1.05);
+        }
+        .input_dis p {
+            font-size: 20px;
+        }
+        .input_dis {
+            border: 4px solid #7A9BAF;
+            margin-left: 400px;
+            padding: 30px;
+            width: 300px;
+            background-color: white;
+            margin-top: 100px;
+            height: auto;
+            color: #2C3E50;
+        }
+        .input_dis textarea {
+            width: 100%;
+            height: 100px;
+            resize: none;
+            box-sizing: border-box;
+        }
+        .input_dis input[type="text"] {
+            width: 100%;
+            height: 20px;
+            box-sizing: border-box;
+        }
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
+        .form-input {
+            margin-bottom: 20px;
+        }
+        input[type="file"]::file-selector-button {
+            border-radius: 4px;
+            padding: 0 16px;
+            height: 30px;
+            cursor: pointer;
+            background-color: #add8e6;
+            border: 1px solid rgba(0, 0, 0, 0.16);
+            box-shadow: 0px 1px 0px rgba(0, 0, 0, 0.05);
+            margin-right: 16px;
+            transition: background-color 200ms;
+        }   
+        input[type="file"]::file-selector-button:hover {
+            background-color: #a0c8e0;
+        }
+        input[type="file"]::file-selector-button:active {
+            background-color: #e5e7eb;
+        }
+    </style>
+
+{% if request.user.is_authenticated %}
+    <div class="input_dis">
+        <form action="{% url 'addInDiscussion' forum.id %}" method="POST" enctype="multipart/form-data">
+            <h3 style="text-align:center; margin-top:0px">Pridať komentár</h3>
+            {% csrf_token %}
+        
+            <div class="form-input">
+                <p>{{ form.discuss.label_tag }} {{ form.discuss }}</p>
+            </div>
+            <div class="form-input">
+                <p>{{ form.link.label_tag }} {{ form.link }}</p>
+            </div>
+            <div class="form-input">
+                <p>{{ form.file.label_tag }} {{ form.file }}</p>
+            </div>
+            <div class="button-container">
+                <input type="submit" class="btn btn-success" value="Vytvoriť">
+                <a class="btn btn-frm" href="{% url 'forum' %}">Naspäť</a>
+            </div>
+        </form>
+    </div>
+{% else %}
+    <p>Please log in.</p>
+{% endif %}
+{% endblock %}
+

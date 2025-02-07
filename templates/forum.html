@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+
+{% block title %}Diskusné fórum{% endblock %}
+
+{% block content %}
+    <style>
+        .frm {
+            color: #2C3E50;
+            background-color: #7A9BAF;
+            margin-top: 30px;
+            padding:20px;
+            width: 85%;
+            margin-left:70px;
+            border-radius:10px;
+            margin-bottom:30px;
+        }
+
+        .card-columns {
+            padding: 10px;
+            margin-left: 120px;
+        }
+
+        .card {
+            color: #2C3E50;
+            position: relative;
+            background-color: white;
+            border: 5px solid #7A9BAF;;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            margin-left: 50px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 900px;
+            padding-bottom: 50px;
+        }
+
+        .card-body {
+            padding: 15px;
+        }
+
+        .btn{
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            border-radius: 5px;
+            display: inline-block;
+            background-color: #93BFCF;
+            color: #2C3E50;
+            padding: 11px;
+            text-align: center;
+            margin: 5px;
+            text-decoration: none;
+            font-size: 16px;
+            border:none;
+            cursor:pointer;
+        }
+
+        .btn:hover {
+            background-color: #6096B4;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .btn-container {
+            position: absolute;
+            bottom: 15px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 10px;
+        }
+
+        .btn-container .btn-right {
+            margin-left: auto;
+            margin-right: 20px;
+        }
+        p {
+            max-width: 100%; 
+            word-wrap: break-word; 
+            overflow-wrap: break-word; 
+        }
+        .btn-add {
+            position: absolute;
+            right:120px;
+            top:63px;
+            font-size:17px;
+        }
+
+
+    </style>
+{% if request.user.is_authenticated %}
+    <div class="frm">
+        <h1>
+            Momentálne aktívne diskusné fóra: {{ count }}
+            <form method="POST" action="{% url 'addInForum' %}">
+                {% csrf_token %}
+                <button class="btn btn-add">Vytvoriť nové fórum</button>
+            </form>
+        </h1>
+    </div>
+    
+    <div class="card-columns">
+    {% for item in forum_data %}
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title">{{ item.forum.topic }}</h2>
+                <p>{{ item.forum.description }}</p>
+                {% if item.forum.link %}
+                    <hr>
+                    <i>Link: </i><a href="{{ item.forum.link }}">{{ item.forum.link }}</a>
+                {% endif %}
+                {% if item.forum.file %}
+                    {% with file_extension=item.forum.file.url|slice:"-4:" %}
+                        {% if file_extension == '.jpg' or file_extension == '.png' or file_extension == '.gif' %}
+                            <hr>
+                            <a href="{{ item.forum.file.url }}" target="_blank">
+                                <img src="{{ item.forum.file.url }}" alt="Image" style="max-width: 50%; height: auto;"/>
+                            </a>
+                        {% else %}
+                            <div>
+                               <hr>
+                               <a href="{{ item.forum.file.url }}" target="_blank">{{ item.forum.file_name }}</a>
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+                {% endif %}
+                <hr>
+                <p><i>Od: </i>{{ item.forum.author.username }}</p>
+                <hr>
+                <p style="color: #666"><i>Vytvorené: </i>{{ item.forum.created_at|date:"d.m.Y H:i" }}</p>
+                <hr style="height:2px; background-color:black">
+                <h4 style="text-align:center">Komentáre od ostatných užívateľov</h4>
+                {% for discussion in item.discussions %}
+                    {% if discussion.discuss %}
+                        <p>({{ discussion.created_at|date:"d.m.Y H:i" }}) <strong>{{ discussion.author.username }} : </strong>{{ discussion.discuss }}</p>
+                    {% else %}
+                        <p>({{ discussion.created_at|date:"d.m.Y H:i" }}) <strong>{{ discussion.author.username }} : </strong></p>
+                    {% endif %}
+                    {% if discussion.link %}
+                        <a href="{{ discussion.link }}">{{ discussion.link }}</a>
+                        <hr>
+                    {% endif %}
+                    {% if discussion.file %}
+                        {% with file_extension=discussion.file.url|slice:"-4:" %}
+                            {% if file_extension == '.jpg' or file_extension == '.png' or file_extension == '.gif' %}
+                                <a href="{{ discussion.file.url }}" target="_blank">
+                                <img src="{{ discussion.file.url }}" alt="Image" style="max-width: 50%; height: auto;"/>
+                                </a>
+                                <hr>
+                            {% else %}
+                                <div>
+                                   <a href="{{ discussion.file.url }}" target="_blank">{{ discussion.file_name }}</a>
+                                   <hr>
+                                </div>
+                            {% endif %}
+                        {% endwith %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <div class="btn-container">
+                {% if item.forum.discussion_set.count > 3 %}
+                    {% if item.show_all %}
+                        <a href="?" class="btn btn-success">Schovať komentáre</a>
+                    {% else %}
+                        <a href="?show_all_forum_id={{ item.forum.id }}" class="btn btn-success">Zobraziť všetky komentáre</a>
+                    {% endif %}
+                {% endif %}
+                <form method="POST" action="{% url 'addInDiscussion' item.forum.id %}" class="btn-right">
+                    {% csrf_token %}
+                    <button class="btn btn-success">Pridať komentár</button>
+                </form>
+            </div>
+        </div>
+    {% endfor %}
+    </div>
+{% else %}
+    <p>Please log in.</p>
+{% endif %}
+{% endblock %}
+

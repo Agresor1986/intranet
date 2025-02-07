@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+
+{% block title %}Chat{% endblock %}
+{% load static %}
+{% block content %}
+<style>
+.chat__item__container {
+    width: 85%;
+    float:left;
+    height:98.6vh;
+    font-family: 'Lato', sans-serif;
+    border-left: 13px solid #7A9BAF;
+    border-bottom: 10px solid #7A9BAF;
+}
+
+.chat-window {
+    height:76.9%;
+    margin: 0 auto;
+    overflow-y: auto;
+    padding: 10px;
+    background-color: #f9f9f9;
+    margin-bottom: 0;
+}
+.message-left {
+    text-align: left;
+    background-color: #f1f1f1;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    max-width: 60%;
+    word-wrap: break-word;
+    clear: both;
+    float: left;
+}
+.message-right {
+    text-align: right;
+    background-color: #add8e6;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    max-width: 60%;
+    word-wrap: break-word;
+    clear: both;
+    float: right;
+}
+.timestamp {
+    font-size: 0.8em;
+    color: gray;
+    text-align: left;
+    margin-bottom: 5px;
+    clear: both;
+}
+.input-container {
+    margin: 0 auto;
+    position: relative;
+    background-color: #fff;
+    padding: 10px;
+    border-top: 1px solid #ccc;
+}
+#id_message_send_input {
+    width: 80%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-right: 10px;
+    box-sizing: border-box;
+}
+#id_message_send_button {
+    padding: 10px;
+    background-color: #add8e6;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-left: 30px;
+    width:140px;
+}
+#id_message_send_button:hover {
+    background-color: #a0c8e0;
+}
+.message {
+    text-align: left;
+}
+#id_file {
+    margin-top: 10px;
+}
+.chat_nav {
+    width: 13.98%;
+    background-color: #7A9BAF;
+    position: relative;
+    height: 100vh;
+    float:right;
+    right:0px;
+}
+.btn-nav {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.btn-chat {
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    border-radius: 8px;
+    display: block;
+    background-color: #93BFCF;
+    color: #2C3E50;
+    padding: 13px;
+    text-align: center;
+    margin: 10px 0;
+    text-decoration: none;
+    width: 110px;
+    font-size: 19px;
+}
+.btn-chat:hover {
+    background-color: #6096B4;
+    color: white;
+    transform: scale(1.05);
+}
+input[type="file"]{
+    width:100%;
+}
+input[type="file"]::file-selector-button {
+    border-radius: 4px;
+    padding: 0 16px;
+    height: 25px;
+    cursor: pointer;
+    background-color: #add8e6;
+    border: 1px solid rgba(0, 0, 0, 0.16);
+    box-shadow: 0px 1px 0px rgba(0, 0, 0, 0.05);
+    margin-right: 16px;
+    transition: background-color 200ms;
+}   
+input[type="file"]::file-selector-button:hover {
+    background-color: #a0c8e0;
+}
+input[type="file"]::file-selector-button:active {
+    background-color: #e5e7eb;
+}
+.chat-header {
+    background-color: #7A9BAF;
+    text-align: center;
+    height: 7%;
+    margin-top: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #2C3E50;
+}
+
+</style>
+
+{% if request.user.is_authenticated %}
+    <div class="chat_nav">
+        <nav class="btn-nav">
+                <a href="{% url 'chat' %}" class="btn-chat">Skupinový Chat</a>
+                {% for user in users %}
+                    {% if user != request.user %}
+                        <a href="{% url 'private_chat' user.username %}" class="btn-chat">{{ user.username }}</a>
+                    {% endif %}
+                {% endfor %}
+        </nav>
+        </div>
+        
+        
+        <div class="chat__item__container" id="id_chat_item_container">
+            <div class="chat-header">
+                <h2>
+                    {% if chat_type == "private" %}
+                        Chat s {{ other_user.username }}
+                    {% else %}  
+                        Skupinový chat
+                    {% endif %}
+                </h2>
+            </div>
+        <div id="chat-box" class="chat-window">
+            {% for message in messages %}
+                <div class="message {% if chat_type == 'group' and message.user == request.user or chat_type == 'private' and message.sender == request.user %}message-right
+                {% else %}message-left{% endif %}">
+                    <div class="timestamp">{{ message.timestamp|date:"d.m.Y H:i" }}</div>
+                    <div class="message"><strong> {% if chat_type == 'group' %}
+                        {{ message.user.username }}
+                    {% else %}
+                        {{ message.sender.username }}
+                    {% endif %}:
+                        </strong> {{ message.content|safe }}</div>
+                    {% if message.file %}
+                        {% with file_extension=message.file.url|slice:"-4:" %}
+                        {% if file_extension == '.jpg' or file_extension == '.png' or file_extension == '.gif' %}
+                            <a href="{{ message.file.url }}" target="_blank">
+                                <img src="{{ message.file.url }}" alt="Image" style="max-width: 300px; height: auto; cursor: pointer;"/>
+                            </a>
+                        {% else %}
+                            <div>
+                                <a href="{{ message.file.url }}" target="_blank">{{ message.file_name }}</a>
+                            </div>
+                        {% endif %}
+                        {% endwith %}
+                    {% endif %}
+                    
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="input-container">
+            <form method="post" action="{% if chat_type == 'group' %}{% url 'chat' %}{% else %}{% url 'private_chat' other_user.username %}{% endif %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="text" id="id_message_send_input" name="content" placeholder="Napíšte správu..."/> 
+                <button type="submit" id="id_message_send_button"><strong>Poslať správu</strong></button>
+                <input type="file" name="file" id="id_file">
+            </form>
+        </div>
+    </div>
+{% else %}
+    <p>Please log in.</p>
+{% endif %}
+
+<script>
+  const chatType = "{{ chat_type }}";
+  const otherUser = "{{ other_user.username|default_if_none:'' }}";
+  const chatSocketUrl = chatType === "group" 
+      ? "wss://" + window.location.host + "/wss/group/" 
+      : "wss://" + window.location.host + "/wss/private/" + otherUser + "/";
+
+  const chatSocket = new WebSocket(chatSocketUrl);
+
+  chatSocket.onopen = function (e) {
+    console.log("The connection was setup successfully!");
+  };
+
+  chatSocket.onclose = function (e) {
+    console.log("Connection closed unexpectedly!");
+  };
+
+  document.querySelector("#id_message_send_input").focus();
+  document.querySelector("#id_message_send_input").onkeyup = function (e) {
+    if (e.keyCode == 13) {
+        e.preventDefault(); // Zabráni odoslaniu formulára
+        document.querySelector("#id_message_send_button").click();
+    }
+  };
+
+
+  document.querySelector("#id_message_send_button").onclick = function (e) {
+    var messageInput = document.querySelector("#id_message_send_input").value.trim();
+    if (messageInput !== "") {
+      chatSocket.send(JSON.stringify({ message: messageInput, username: "{{ request.user.username }}" }));
+    }
+  };
+
+  chatSocket.onmessage = function (e) {
+    const data = JSON.parse(e.data);
+    var messageContainer = document.createElement("div");
+    var timestamp = new Date(data.timestamp * 1000);
+    var formattedTime = timestamp.getDate().toString().padStart(2, '0') + '.' + (timestamp.getMonth() + 1).toString().padStart(2, '0') + '.' + timestamp.getFullYear() + ' ' + timestamp.getHours().toString().padStart(2, '0') + ':' + timestamp.getMinutes().toString().padStart(2, '0');
+
+    var timestampDiv = document.createElement("div");
+    timestampDiv.className = "timestamp";
+    timestampDiv.textContent = formattedTime;
+
+    var messageDiv = document.createElement("div");
+    messageDiv.innerHTML = `<strong>${data.username}:</strong> ${data.message}`;
+
+    if (data.username === "{{ request.user.username }}") {
+      messageContainer.className = "message message-right";
+    } else {
+      messageContainer.className = "message message-left";
+    }
+
+    messageContainer.appendChild(timestampDiv);
+    messageContainer.appendChild(messageDiv);
+
+    document.querySelector("#chat-box").appendChild(messageContainer);
+    document.querySelector("#id_message_send_input").value = "";
+    scrollToBottom();
+  };
+
+  function scrollToBottom() {
+    var chatBox = document.querySelector("#chat-box");
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  window.onload = function() {
+    scrollToBottom();
+  };
+</script>
+{% endblock %}

@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% block title %}Pridať anketu{% endblock %}
+{% block content %}
+<style>
+    .polls {
+        font-family: 'Lato', sans-serif;
+        color: #2C3E50;
+        display: flex; 
+        justify-content: center; 
+        margin-top: 20px;
+    }
+    .plls  {   
+        border: 4px solid #7A9BAF;
+        background-color: white; 
+        padding: 20px; 
+        border-radius: 8px; 
+        box-shadow: 0 0 10px rgba(0,0,0,0.1); 
+        height: auto; 
+        width: 370px;
+        padding-right:0px;
+        padding-left:25px;
+        padding-bottom:25px;
+    }
+    .btn {
+        transition: background-color 0.3s ease, transform 0.3s ease;
+        border-radius: 5px;
+        display: inline-block;
+        background-color: #93BFCF;
+        color: #2C3E50;
+        padding: 11px;
+        text-align: center;
+        text-decoration: none;
+        font-size: 17px;
+        cursor: pointer;
+        border:none;
+        padding-left: 17px;
+        padding-right: 17px;
+    }
+    .btn:hover {
+        background-color: #6096B4;
+        color: white;
+        transform: scale(1.05);
+    }
+    .btn-secondary {
+        margin-left:75px;
+    }
+    .btn-exit {
+        margin-top:20px;
+        margin-right:40px;
+        float:right;
+    }
+    .btn-primary {
+        margin-top:20px;
+        margin-left:15px;
+        float:left;
+    }
+    label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    #choices_container {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .choice {
+        width: 45%;
+        margin-right: 15px;
+        margin-bottom: 10px;
+    }
+    .choice:last-child {
+        margin-right: 0;
+    }
+    #poll_description {
+        height: 100px;
+        resize: none;
+    }
+    .form-control {
+        width: 90%;
+    }
+    .alert-success {
+        text-align:center;
+        margin-top: 20px;
+    }
+</style>
+{% if request.user.is_authenticated %}
+    <div class="polls">
+    <div class="plls">
+        <h2 style="text-align:center; margin-left:-5px">Pridať anketu</h2>
+    
+        <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="poll_name">Názov</label>
+            <input type="text" id="poll_name" name="poll_name" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="poll_description">Popis</label>
+            <textarea id="poll_description" name="poll_description" class="form-control" required></textarea>
+        </div>
+      
+        <div id="choices_container" class="form-group">
+            <div class="choice">
+                <label for="choices_1">Možnosť 1</label>
+                <input type="text" id="choice_1" name="choices" class="form-control" required>
+            </div>
+            <div class="choice">
+                <label for="choices_2">Možnosť 2</label>
+                <input type="text" id="choice_2" name="choices" class="form-control" required>
+            </div>
+        </div>
+      
+        <div><button type="button" id="add_choice_btn" class="btn btn-secondary">Pridať ďalšiu možnosť</button></div>
+        <a href="{% url 'PollApp:polls' %}" class="btn btn-exit">Naspäť</a>
+        <button type="submit" class="btn btn-primary">Vytvoriť</button>
+        </form>
+        {% if success_message %}
+            <div class="alert alert-success">{{ success_message }}</div>
+        {% endif %}
+    </div>
+    </div>
+{% else %}
+    <p>Please log in.</p>
+{% endif %}
+<script>
+  let choiceCount = 2;
+  
+  document.getElementById("add_choice_btn").addEventListener("click", function() {
+    choiceCount++;
+    const newChoiceDiv = document.createElement("div");
+    newChoiceDiv.classList.add("choice");
+
+    const newChoiceLabel = document.createElement("label");
+    newChoiceLabel.setAttribute("for", "choice_" + choiceCount);
+    newChoiceLabel.innerText = "Možnosť " + choiceCount;
+    
+    const newChoiceInput = document.createElement("input");
+    newChoiceInput.setAttribute("type", "text");
+    newChoiceInput.setAttribute("id", "choice_" + choiceCount);
+    newChoiceInput.setAttribute("name", "choices");
+    newChoiceInput.setAttribute("class", "form-control");
+    newChoiceInput.setAttribute("required", "");
+
+    newChoiceDiv.appendChild(newChoiceLabel);
+    newChoiceDiv.appendChild(newChoiceInput);
+
+    const choicesContainer = document.getElementById("choices_container");
+    choicesContainer.appendChild(newChoiceDiv);
+  });
+</script>
+{% endblock %}
