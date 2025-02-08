@@ -234,9 +234,14 @@ input[type="file"]::file-selector-button:active {
   document.querySelector("#id_message_send_input").onkeyup = function (e) {
     if (e.keyCode == 13) {
         e.preventDefault(); // Zabráni odoslaniu formulára
-        document.querySelector("#id_message_send_button").click();
+        var messageInput = document.querySelector("#id_message_send_input").value.trim();
+        if (messageInput !== "") {
+            chatSocket.send(JSON.stringify({ message: messageInput, username: "{{ request.user.username }}" }));
+            document.querySelector("#id_message_send_input").value = ""; // Vyčistenie inputu
+        }
     }
   };
+
 
 
   document.querySelector("#id_message_send_button").onclick = function (e) {
