@@ -90,26 +90,47 @@
 <div class="documents">
     <div class="docs-container">
         <div style="display: flex; align-items: center;">
-            <h2>Dokumenty</h2>
+            <h2>Dokumenty</h2> <!-- Zobrazenie nadpisu  -->
+            <!-- Tlačidlo na presmerovanie na stránku určenú pre vloženie dokumentu -->
             <a href="{% url 'upload_document' %}" class="btn btn-upload">Vložiť dokument</a>
         </div>
-        <ul>
+        <ul> <!-- Zoznam dokumentov -->
             {% for document in documents %}
+                <!-- Pre každý dokument sa vytvorí položka v zozname -->
                 <li class="doc-item">
                     <div>
+                        <!-- Odkaz na stiahnutie dokumentu, ktorý sa otvorí v novom okne -->
                         <a href="{{ document.file.url }}" class="doc-title" target="_blank">{{ document.title }}</a>
-                        <div class="doc-info">{{ document.uploaded_at|date:"d.m.Y H:i" }} | {{ document.file.size|filesizeformat }}</div>
+                        
+                        <!-- Informácie o dokumente: dátum nahratia a veľkosť súboru -->
+                        <div class="doc-info">
+                            {% if document.uploaded_at %}
+                                {{ document.uploaded_at|date:"d.m.Y H:i" }} | 
+                            {% else %}
+                                Dátum nie je dostupný | 
+                            {% endif %}
+                            
+                            {% if document.file %}
+                                {{ document.file.size|filesizeformat }}
+                            {% else %}
+                                Súbor nie je dostupný
+                            {% endif %}
+                        </div>
                     </div>
-                    <!-- Tlačidlo s priamym HTML potvrdením -->
+                    <!-- Formulár na vymazanie dokumentu s potvrdením pred vymazaním -->
                     <form action="{% url 'delete_document' document.id %}" method="post" style="margin: 0;">
                         {% csrf_token %}
+                        <!-- Tlačidlo na vymazanie dokumentu, ktoré vyžaduje potvrdenie -->
                         <button type="submit" class="btn btn-delete" onclick="return confirm('Ste si istý, že chcete vymazať tento dokument');">Vymazať</button>
                     </form>
                 </li>
             {% empty %}
+                <!-- Ak nie sú žiadne dokumenty, zobrazí sa správa -->
                 <li class="doc-item">Žiadne dokumenty k dispozícií</li>
             {% endfor %}
         </ul>
     </div>
 </div>
+
+
 {% endblock %}
