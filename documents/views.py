@@ -24,6 +24,7 @@ def upload_document(request):
 
 @login_required
 def delete_document(request, document_id):
-    document = get_object_or_404(Document, id=document_id)
+    document = get_object_or_404(Document, id=document_id, user=request.user)
     document.delete()
     return redirect('document_list')
+
