@@ -98,7 +98,7 @@
                 <li class="doc-item">
                     <div>
                         <a href="{{ document.file.url }}" class="doc-title" target="_blank">{{ document.title }}</a>
-                        <div class="doc-info">{{ document.uploaded_at|date:"d.m.Y H:i" }}</div>
+                        <div class="doc-info">{{ document.uploaded_at|date:"d.m.Y H:i" }} | {{ document.file.size|filesizeformat }}</div>
                     </div>
                     <!-- Tlačidlo s priamym HTML potvrdením -->
                     <form action="{% url 'delete_document' document.id %}" method="post" style="margin: 0;">
