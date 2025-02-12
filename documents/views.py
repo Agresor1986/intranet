@@ -3,10 +3,13 @@ from .models import Document
 from .forms import DocumentForm
 from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
+from django.core.files.storage import default_storage
 
 @login_required
 def document_list(request):
     documents = Document.objects.filter(user=request.user).order_by('-uploaded_at')
+    for document in documents:
+        document.file_exists = default_storage.exists(document.file.name)
     return render(request, 'document_list.html', {'documents': documents})
 
 @login_required
