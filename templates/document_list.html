@@ -102,7 +102,7 @@
                             <a href="{{ document.file.url }}" class="doc-title" target="_blank">{{ document.title }}</a>
                             <div class="doc-info">{{ document.uploaded_at|date:"d.m.Y H:i" }} | {{ document.file.size|filesizeformat }}</div>
                         {% else %}
-                            <span class="doc-title">{{ document.title }} (Súbor neexistuje)</span>
+                            <div>Žiadne dokumenty k dispozícii</div>
                         {% endif %}
                     </div>
                     <form action="{% url 'delete_document' document.id %}" method="post" style="margin: 0;">
@@ -111,10 +111,11 @@
                     </form>
                 </li>
             {% empty %}
-                <li class="doc-item">Žiadne dokumenty k dispozícií</li>
+                <li class="doc-item">Žiadne dokumenty k dispozícii</li>
             {% endfor %}
         </ul>
     </div>
 </div>
+
 
 {% endblock %}
