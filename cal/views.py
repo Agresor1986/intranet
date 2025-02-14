@@ -14,6 +14,7 @@ from django.contrib import messages
 from notifications.models import Notification
 from django.utils.timezone import now
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 
 User = get_user_model()
 
@@ -22,9 +23,8 @@ class CalendarView(LoginRequiredMixin, generic.ListView):
     template_name = 'calendar.html'
 
     def get_queryset(self):
-        # Kontrola začiatku eventov
         check_event_start_notifications()
-        return Event.objects.filter(user=self.request.user) | Event.objects.filter(is_global=True)
+        return Event.objects.filter(Q(user=self.request.user) | Q(is_global=True))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -100,8 +100,10 @@ def check_event_start_notifications():
     # Notifikácia presne v čase začiatku eventu (iba pre vlastné eventy alebo globálne)
     events_to_notify_now = Event.objects.filter(
         start_time__lte=now_time, 
-        start_time__gte=now_time - timedelta(minutes=1)
+        start_time__gte=now_time - timedelta(minutes=1),
+        notification_sent_today=False
     )
+
     for event in events_to_notify_now:
         event_url = reverse('cal:event_edit', kwargs={'event_id': event.id})
         if not Notification.objects.filter(user=event.user, url=event_url).exists():
@@ -120,7 +122,7 @@ def check_event_start_notifications():
                 )
 
     # Notifikácia, že event začína dnes (iba pre vlastné eventy alebo globálne)
-    events_starting_today = Event.objects.filter(start_time__date=now_time.date())
+    events_starting_today = Event.objects.filter(start_time__date=now_time.date(), notification_sent_today=False)
     for event in events_starting_today:
         if not event.notification_sent_today:  # Kontrola, či notifikácia už bola odoslaná
             event_url = reverse('cal:event_edit', kwargs={'event_id': event.id})
