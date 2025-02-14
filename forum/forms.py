@@ -4,16 +4,19 @@ from django import forms
 
 class CreateInForum(ModelForm):
     class Meta:
-        model = forum
+        model = Forum
         fields = ['topic', 'description', 'link', 'file']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 5}),
+        }
 
     def __init__(self, *args, **kwargs):
         super(CreateInForum, self).__init__(*args, **kwargs)
-
-        # Nastavenie popisov pre jednotlivé polia
         self.fields['topic'].label = 'Názov'
         self.fields['description'].label = 'Popis'
+        self.fields['link'].label = 'Odkaz'
         self.fields['file'].label = 'Súbor'
+
 
 class CreateInDiscussion(ModelForm):
     class Meta:
@@ -22,9 +25,8 @@ class CreateInDiscussion(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(CreateInDiscussion, self).__init__(*args, **kwargs)
-
-        # Nastavenie popisov pre jednotlivé polia
         self.fields['discuss'].label = 'Komentár'
+        self.fields['link'].label = 'Odkaz'
         self.fields['file'].label = 'Súbor'
 
     def clean(self):
@@ -33,8 +35,7 @@ class CreateInDiscussion(ModelForm):
         link = cleaned_data.get('link')
         file = cleaned_data.get('file')
 
-        # Overenie, či je aspoň jedno pole vyplnené
         if not (discuss or link or file):
             raise forms.ValidationError("Musíte zadať text, odkaz alebo pridať súbor.")
-        
+
         return cleaned_data
