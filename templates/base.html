@@ -141,7 +141,9 @@
             <a href="{% url 'cal:calendar' %}" class="nav-button">Kalendár</a>
             <a href="{% url 'forum' %}" class="nav-button">Diskusné fórum</a>
             <a href="{% url 'PollApp:polls' %}" class="nav-button">Ankety</a>
+            
             <a href="{% url 'document_list' %}" class="nav-button">Dokumenty</a>
+            
             <a href="{% url 'send_mail_page' %}" class="nav-button">Mail</a>
             <form action="{% url 'logout' %}" method="post" class="logout-form">
                 {% csrf_token %}
@@ -178,4 +180,5 @@
     </script>
 </body>
 </html>
+
 

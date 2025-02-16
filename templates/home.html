@@ -102,23 +102,27 @@
         }
     </style>
     
-    <div class="content-area">
-        <h2 class="section-title">Vaše upozornenia</h2>
+    <div class="content-area">  <!-- Kontajner pre obsah sekcie. -->
+        <h2 class="section-title">Vaše upozornenia</h2>  <!-- Názov sekcie. -->
+        <!-- Tlačidlo pre označenie všetkých notifikácií ako prečítaných. -->
         <a href="{% url 'mark_all_as_read' %}" class="mark-all-button">Označiť všetko ako prečítané</a>
-        <ul class="notification-list">
-            {% for notification in notifications %}
+        
+        <ul class="notification-list">  <!-- Zoznam pre notifikácie. -->
+            {% for notification in notifications %}  <!-- Pre každú notifikáciu. -->
                 <li class="notification-item">
-                    {% if notification.url %}
-                    <span class="notification-message">{{ notification.message|safe }} <a href="{{ notification.url }}" class="go-to-link">Pozrieť</a></span>
+                    {% if notification.url %}  <!-- Ak má notifikácia URL. -->
+                        <span class="notification-message">{{ notification.message|safe }} 
+                        <a href="{{ notification.url }}" class="go-to-link">Pozrieť</a></span>  <!-- Zobrazenie správy s odkazom. -->
                     {% else %}
-                        <span class="notification-message">{{ notification.message|safe }}</span>
+                        <span class="notification-message">{{ notification.message|safe }}</span>  <!-- Zobrazenie správy bez odkazu. -->
                     {% endif %}
-                    <span class="timestamp">({{ notification.timestamp|date:"d.m.Y H:i"  }})</span>
-                    <a href="{% url 'mark_as_read' notification.id %}" class="mark-read-link">Označiť ako prečítané</a>
+                    <span class="timestamp">({{ notification.timestamp|date:"d.m.Y H:i"  }})</span>  <!-- Zobrazenie času notifikácie. -->
+                    <a href="{% url 'mark_as_read' notification.id %}" class="mark-read-link">Označiť ako prečítané</a>  <!-- Odkaz na označenie notifikácie ako prečítanej. -->
                 </li>
             {% empty %}
-                <li class="no-notifications">Žiadne nové upozornenia</li>
+                <li class="no-notifications">Žiadne nové upozornenia</li>  <!-- Ak nie sú žiadne notifikácie. -->
             {% endfor %}
         </ul>
     </div>
+    
 {% endblock %}

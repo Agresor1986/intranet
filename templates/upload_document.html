@@ -71,23 +71,29 @@
 
 <div class="upload-documents">
     <div class="upload-container">
-        <h1>Vložiť dokument</h1>
+        <h1>Vložiť dokument</h1> <!-- Nadpis -->
+        <!-- Formulár na nahrávanie dokumentu -->
         <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
+            {% csrf_token %} 
             <div class="form-group">
-                <label for="{{ form.title.id_for_label }}">Názov:</label>
-                {{ form.title }}
+                <!-- Popis pre pole názvu -->
+                <label for="{{ form.title.id_for_label }}">Názov:</label> 
+                {{ form.title }}  <!-- Vykreslenie poľa pre napísanie názvu dokumentu -->
             </div>
             <div class="form-group">
-                <label for="{{ form.file.id_for_label }}">Súbor:</label>
-                {{ form.file }}
+                <!-- Popis pre pole súboru -->
+                <label for="{{ form.file.id_for_label }}">Súbor:</label>  
+                {{ form.file }}  <!-- Vykreslenie poľa pre vloženie súboru -->
             </div>
             <div class="btn-container">
-                <button type="submit" class="btn">Vložiť</button>
-                <a href="{% url 'document_list' %}" class="btn">Naspäť</a>
+                <!-- Tlačidlo na odoslanie formuláru a vloženie dokumentu -->
+                <button type="submit" class="btn">Vložiť</button>  
+                <!-- Odkaz na stránku so zoznamom dokumentov -->
+                <a href="{% url 'document_list' %}" class="btn">Naspäť</a>  
             </div>
         </form>
     </div>
 </div>
+
 {% endblock %}
 

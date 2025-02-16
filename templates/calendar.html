@@ -131,10 +131,14 @@ ul, .calendar td ul, .calendar td li {
 {% if request.user.is_authenticated %}
     <div class="calendar-container">
         <div class="clearfix">
+            <!-- Odkaz na predchádzajúci mesiac -->
             <a class="btn left" href="{% url 'cal:calendar' %}?{{ prev_month }}"> Minulý mesiac </a>
+            <!-- Odkaz na stránku na vytvorenie novej udalosti -->
             <a href="{% url 'cal:event_new' %}" class="btn event">Vytvoriť novú udalosť</a>
+            <!-- Odkaz na nasledujúci mesiac -->
             <a class="btn right" href="{% url 'cal:calendar' %}?{{ next_month }}"> Budúci mesiac </a>
         </div>
+        <!-- Zobrazenie vykresleného kalendára -->
         {{ calendar }}
     </div>
 {% else %}
