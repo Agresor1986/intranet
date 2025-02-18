@@ -17,6 +17,7 @@ from django.contrib.auth import get_user_model
 from django.db.models import Q
 from mail.models import SentEmail
 from django.core.mail import send_mail
+from django.conf import settings
 
 User = get_user_model()
 
@@ -129,7 +130,7 @@ Buďte pripravení!
         recipient_list = [event.user.email] if event.user.email else []
 
     for recipient in recipient_list:
-        send_mail(subject, message, os.getenv("EMAIL_HOST_USER"), [recipient])
+        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [recipient])
         SentEmail.objects.create(sender=event.user, recipient=recipient, subject=subject, message=message)
 
 def check_event_start_notifications():
