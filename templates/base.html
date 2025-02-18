@@ -136,15 +136,13 @@
         <h1 class="username">Vitaj {{ user.username }}</h1>
         <div class="date-time" id="date-time"></div>
         <h2 class="nav-links">
-            <a href="{% url 'home' %}" class="nav-button">Domov</a>
-            <a href="{% url 'chat' %}" class="nav-button">Chat</a>
-            <a href="{% url 'cal:calendar' %}" class="nav-button">Kalendár</a>
-            <a href="{% url 'forum' %}" class="nav-button">Diskusné fórum</a>
-            <a href="{% url 'PollApp:polls' %}" class="nav-button">Ankety</a>
-            
-            <a href="{% url 'document_list' %}" class="nav-button">Dokumenty</a>
-            
-            <a href="{% url 'send_mail_page' %}" class="nav-button">Mail</a>
+            <a href="{% url 'home' %}" class="nav-button">Domov 🏠</a>
+            <a href="{% url 'chat' %}" class="nav-button">Chat 💬</a>
+            <a href="{% url 'cal:calendar' %}" class="nav-button">Kalendár 📅</a>
+            <a href="{% url 'forum' %}" class="nav-button">Diskusné fórum 📝</a>
+            <a href="{% url 'PollApp:polls' %}" class="nav-button">Ankety 📊</a>
+            <a href="{% url 'document_list' %}" class="nav-button">Dokumenty 📂</a>
+            <a href="{% url 'send_mail_page' %}" class="nav-button">Mail 📧</a>
             <form action="{% url 'logout' %}" method="post" class="logout-form">
                 {% csrf_token %}
                 <button type="submit" class="logout-button">Odhlásiť sa</button>
