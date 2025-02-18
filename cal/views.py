@@ -78,32 +78,21 @@ def event(request, event_id=None):
             event.user = request.user
             event.save()
 
+            # 🔹 Klasické intranetové notifikácie – presne ako boli predtým
             if request.user.is_staff and event.is_global:
-                send_event_notification(event)
+                event_url = reverse('cal:event_edit', kwargs={'event_id': event.id})
+                for user in User.objects.exclude(id=request.user.id):
+                    Notification.objects.create(
+                        user=user,
+                        message=f'Nová udalosť <strong>"{event.title}"</strong> bola pridaná!',
+                        url=event_url
+                    )
 
             return HttpResponseRedirect(reverse('cal:calendar'))
     else:
         form = EventForm(instance=instance)
 
     return render(request, 'event.html', {'form': form, 'view_only': view_only})
-
-def send_event_notification(event):
-    subject = f"Nová dôležitá udalosť: {event.title}"
-    message = f"""
-Nová globálna udalosť bola pridaná do kalendára:
-
-🗓 Názov: {event.title}
-📅 Dátum: {event.start_time.strftime('%d.%m.%Y')}
-🕒 Čas: {event.start_time.strftime('%H:%M')} - {event.end_time.strftime('%H:%M')}
-📖 Popis: {event.description}
-
-Pozrite si viac v kalendári intranetu.
-"""
-    recipient_list = User.objects.values_list('email', flat=True).exclude(email="")
-
-    for recipient in recipient_list:
-        send_mail(subject, message, 'noreply@yourdomain.com', [recipient])
-        SentEmail.objects.create(sender=event.user, recipient=recipient, subject=subject, message=message)
 
 def send_event_reminder(event, reminder_type):
     subject = f"Pripomienka: {event.title}"
@@ -140,20 +129,25 @@ Buďte pripravení!
         recipient_list = [event.user.email] if event.user.email else []
 
     for recipient in recipient_list:
-        send_mail(subject, message, 'noreply@yourdomain.com', [recipient])
+        send_mail(subject, message, os.getenv("EMAIL_HOST_USER"), [recipient])
         SentEmail.objects.create(sender=event.user, recipient=recipient, subject=subject, message=message)
 
 def check_event_start_notifications():
     now_time = now()
 
+    # 🔹 Pripomienka: Ak udalosť začína dnes, pošleme e-mail
     events_starting_today = Event.objects.filter(start_time__date=now_time.date(), notification_sent_today=False)
     for event in events_starting_today:
         send_event_reminder(event, "today")
         event.notification_sent_today = True  
         event.save()
 
+    # 🔹 Pripomienka: Ak udalosť začne o 5 minút, pošleme e-mail
     five_minutes_from_now = now_time + timedelta(minutes=5)
-    events_starting_soon = Event.objects.filter(start_time__lte=five_minutes_from_now, start_time__gte=now_time)
+    events_starting_soon = Event.objects.filter(
+        start_time__lte=five_minutes_from_now,
+        start_time__gte=now_time
+    )
     for event in events_starting_soon:
         send_event_reminder(event, "five_minutes")
 
