@@ -20,7 +20,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 
 User = get_user_model()
-
+ť
 class CalendarView(LoginRequiredMixin, generic.ListView):
     model = Event
     template_name = 'calendar.html'
@@ -134,23 +134,66 @@ Buďte pripravení!
         SentEmail.objects.create(sender=event.user, recipient=recipient, subject=subject, message=message)
 
 def check_event_start_notifications():
+    """ Skontroluje, či práve nezačal nejaký event a pošle notifikáciu """
     now_time = now()
+    
+    # Notifikácia presne v čase začiatku eventu (iba pre vlastné eventy alebo globálne)
+    events_to_notify_now = Event.objects.filter(
+        start_time__lte=now_time, 
+        start_time__gte=now_time - timedelta(minutes=1),
+        notification_sent_today=False
+    )
 
-    # 🔹 Pripomienka: Ak udalosť začína dnes, pošleme e-mail
+    for event in events_to_notify_now:
+        event_url = reverse('cal:event_edit', kwargs={'event_id': event.id})
+        if not Notification.objects.filter(user=event.user, url=event_url).exists():
+            if event.is_global:
+                for user in User.objects.all():
+                    Notification.objects.create(
+                        user=user,
+                        message=f'Dôležitá udalosť <strong>"{event.title}"</strong> teraz začína!',
+                        url=event_url
+                    )
+            else:
+                Notification.objects.create(
+                    user=event.user,
+                    message=f'Vaša udalosť <strong>"{event.title}"</strong> teraz začína!',
+                    url=event_url
+                )
+
+    # Notifikácia, že event začína dnes (iba pre vlastné eventy alebo globálne)
     events_starting_today = Event.objects.filter(start_time__date=now_time.date(), notification_sent_today=False)
     for event in events_starting_today:
-        send_event_reminder(event, "today")
-        event.notification_sent_today = True  
-        event.save()
+        if not event.notification_sent_today:  # Kontrola, či notifikácia už bola odoslaná
+            event_url = reverse('cal:event_edit', kwargs={'event_id': event.id})
+            if event.is_global:
+                for user in User.objects.all():
+                    Notification.objects.create(
+                        user=user,
+                        message=f'Dôležitá udalosť <strong>"{event.title}"</strong> dnes začína!',
+                        url=event_url
+                    )
+            else:
+                Notification.objects.create(
+                    user=event.user,
+                    message=f'Vaša udalosť <strong>"{event.title}"</strong> dnes začína!',
+                    url=event_url
+                )
+            # Označenie, že notifikácia bola odoslaná
+            event.notification_sent_today = True
+            event.save()
 
-    # 🔹 Pripomienka: Ak udalosť začne o 5 minút, pošleme e-mail
-    five_minutes_from_now = now_time + timedelta(minutes=5)
-    events_starting_soon = Event.objects.filter(
-        start_time__lte=five_minutes_from_now,
-        start_time__gte=now_time
+    # Notifikácia 5 minút pred začiatkom udalosti
+    events_starting_in_five_minutes = Event.objects.filter(
+        start_time__lte=now_time + timedelta(minutes=5),
+        start_time__gte=now_time + timedelta(minutes=4),
+        notification_sent_five_minutes=False
     )
-    for event in events_starting_soon:
+
+    for event in events_starting_in_five_minutes:
         send_event_reminder(event, "five_minutes")
+        event.notification_sent_five_minutes = True
+        event.save()
 
 @login_required
 def delete_event(request, event_id):
