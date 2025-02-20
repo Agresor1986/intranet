@@ -20,7 +20,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 
 User = get_user_model()
-ť
+
 class CalendarView(LoginRequiredMixin, generic.ListView):
     model = Event
     template_name = 'calendar.html'
