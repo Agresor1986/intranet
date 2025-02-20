@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .models import Message, PrivateConversation, PrivateMessage
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from notifications.models import Notification
 import re
 
@@ -42,10 +43,11 @@ def chat(request):
 @login_required
 def private_chat(request, username):
     user2 = get_object_or_404(User, username=username)
-    conversation, created = PrivateConversation.objects.get_or_create(
-        user1=min(request.user, user2, key=lambda x: x.pk),
-        user2=max(request.user, user2, key=lambda x: x.pk)
-    )
+    conversation = PrivateConversation.get_conversation(request.user, user2)
+
+    if not conversation:
+        conversation = PrivateConversation.objects.create(user1=min(request.user, user2, key=lambda x: x.pk), 
+                                                          user2=max(request.user, user2, key=lambda x: x.pk))
 
     Notification.objects.filter(user=request.user, url=f"/chat/private/{username}/").delete()
 
@@ -69,4 +71,3 @@ def private_chat(request, username):
         return redirect("private_chat", username=username)
 
     return render(request, "chat.html", {"messages": messages, "chat_type": "private", "other_user": user2, "users": users})
-                            
