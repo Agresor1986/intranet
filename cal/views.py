@@ -134,10 +134,10 @@ Buďte pripravení!
         SentEmail.objects.create(sender=event.user, recipient=recipient, subject=subject, message=message)
 
 def check_event_start_notifications():
-    """ Skontroluje, či práve nezačal nejaký event a pošle notifikáciu """
+    """ Skontroluje, či práve nezačal nejaký event a pošle notifikácie """
     now_time = now()
     
-    # Notifikácia presne v čase začiatku eventu (iba pre vlastné eventy alebo globálne)
+    # Notifikácia presne v čase začiatku eventu (klasické notifikácie)
     events_to_notify_now = Event.objects.filter(
         start_time__lte=now_time, 
         start_time__gte=now_time - timedelta(minutes=1),
@@ -161,7 +161,7 @@ def check_event_start_notifications():
                     url=event_url
                 )
 
-    # Notifikácia, že event začína dnes (iba pre vlastné eventy alebo globálne)
+    # Notifikácia, že event začína dnes (klasické notifikácie + e-mailové notifikácie)
     events_starting_today = Event.objects.filter(start_time__date=now_time.date(), notification_sent_today=False)
     for event in events_starting_today:
         if not event.notification_sent_today:  # Kontrola, či notifikácia už bola odoslaná
@@ -179,11 +179,13 @@ def check_event_start_notifications():
                     message=f'Vaša udalosť <strong>"{event.title}"</strong> dnes začína!',
                     url=event_url
                 )
+            # E-mailová notifikácia pre dnes začínajúce udalosti
+            send_event_reminder(event, "today")
             # Označenie, že notifikácia bola odoslaná
             event.notification_sent_today = True
             event.save()
 
-    # Notifikácia 5 minút pred začiatkom udalosti
+    # Notifikácia 5 minút pred začiatkom udalosti (e-mailové notifikácie)
     events_starting_in_five_minutes = Event.objects.filter(
         start_time__lte=now_time + timedelta(minutes=5),
         start_time__gte=now_time + timedelta(minutes=4),
