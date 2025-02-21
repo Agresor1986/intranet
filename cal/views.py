@@ -137,10 +137,10 @@ def check_event_start_notifications():
     """ Skontroluje, či práve nezačal nejaký event a pošle notifikácie """
     now_time = now()
     
-    # Notifikácia presne v čase začiatku eventu (klasické notifikácie)
+   # Notifikácia presne v čase začiatku eventu (klasické notifikácie)
     events_to_notify_now = Event.objects.filter(
         start_time__lte=now_time, 
-        start_time__gte=now_time - timedelta(minutes=1),
+        start_time__gte=now_time - timedelta(seconds=30),  # Zmenené na 30 sekúnd
         notification_sent_today=False
     )
 
@@ -188,7 +188,7 @@ def check_event_start_notifications():
     # Notifikácia 5 minút pred začiatkom udalosti (e-mailové notifikácie)
     events_starting_in_five_minutes = Event.objects.filter(
         start_time__lte=now_time + timedelta(minutes=5),
-        start_time__gte=now_time + timedelta(minutes=4),
+        start_time__gte=now_time + timedelta(minutes=5) - timedelta(seconds=30),  # Zmenené na 30 sekúnd
         notification_sent_five_minutes=False
     )
 
