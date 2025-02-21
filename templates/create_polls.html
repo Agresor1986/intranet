@@ -126,29 +126,29 @@
     <p>Please log in.</p>
 {% endif %}
 <script>
-  let choiceCount = 2;
+    let choiceCount = 2;
   
-  document.getElementById("add_choice_btn").addEventListener("click", function() {
-    choiceCount++;
-    const newChoiceDiv = document.createElement("div");
-    newChoiceDiv.classList.add("choice");
-
-    const newChoiceLabel = document.createElement("label");
-    newChoiceLabel.setAttribute("for", "choice_" + choiceCount);
-    newChoiceLabel.innerText = "Možnosť " + choiceCount;
-    
-    const newChoiceInput = document.createElement("input");
-    newChoiceInput.setAttribute("type", "text");
-    newChoiceInput.setAttribute("id", "choice_" + choiceCount);
-    newChoiceInput.setAttribute("name", "choices");
-    newChoiceInput.setAttribute("class", "form-control");
-    newChoiceInput.setAttribute("required", "");
-
-    newChoiceDiv.appendChild(newChoiceLabel);
-    newChoiceDiv.appendChild(newChoiceInput);
-
-    const choicesContainer = document.getElementById("choices_container");
-    choicesContainer.appendChild(newChoiceDiv);
-  });
-</script>
+    document.getElementById("add_choice_btn").addEventListener("click", function() {
+      choiceCount++;
+      const newChoiceDiv = document.createElement("div");
+      newChoiceDiv.classList.add("choice");
+      newChoiceDiv.id = "choice_div_" + choiceCount;
+  
+      const newChoiceLabel = document.createElement("label");
+      newChoiceLabel.setAttribute("for", "choice_" + choiceCount);  // Správne prepojenie for a id
+      newChoiceLabel.innerText = "Možnosť " + choiceCount;
+  
+      const newChoiceInput = document.createElement("input");
+      newChoiceInput.setAttribute("type", "text");
+      newChoiceInput.setAttribute("id", "choice_" + choiceCount);  // ID odpovede
+      newChoiceInput.setAttribute("name", "choices");
+      newChoiceInput.setAttribute("class", "form-control");
+  
+      newChoiceDiv.appendChild(newChoiceLabel);
+      newChoiceDiv.appendChild(newChoiceInput);
+  
+      document.getElementById("choices_container").appendChild(newChoiceDiv);
+    });
+  </script>
+  
 {% endblock %}

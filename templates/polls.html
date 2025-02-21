@@ -97,7 +97,7 @@
         <div class="plls">
             <div style="display: flex; align-items: center;">
                 <h1>Dostupné ankety</h1>
-                {% if request.user.is_superuser or request.user.groups.all.0.name == 'manazer' %}
+                {% if request.user.is_superuser or request.user.groups.all|dictsort:"name"|slice:":1"|join:"" == "manazer" %}
                     <a href="{% url 'PollApp:create_polls' %}" class="btn btn-create">Vytvoriť novú anketu</a>
                 {% endif %}
             </div>
@@ -105,11 +105,7 @@
                 {% for poll in polls %}
                     <div class="av_polls">
                         <h5>{{ poll.name }}</h5>
-                        {% if poll.total_votes > 0 %}
-                            <div id="piechart-{{ poll.id }}"></div>
-                        {% else %}
-                            <p>Zatiaľ žiadne hlasy. Buďte prvý kto zahlasuje!</p>
-                        {% endif %}
+                        <div id="piechart-{{ poll.id }}"></div>
                         <div class="vote-timestamp">
                             <a href="{% url 'PollApp:poll' poll.id %}" class="btn btn-primary">Hlasovať</a>
                             <p class="timestamp">{{ poll.timestamp|date:"d.m.Y H:i" }}</p>
@@ -128,18 +124,28 @@
         function initCharts() {
             {% for poll in polls %}
                 var pollResults = [
-                    ["Choice", "Vote Count"]
+                    ["Možnosť", "Počet hlasov"]
                     {% for choice in poll.choices.all %}
                         , ["{{ choice.name|escapejs }}", {{ choice.vote_count }}]
                     {% endfor %}
                 ];
+
+                // Ak nie sú žiadne hlasy, zobrazíme defaultné dáta
+                if (pollResults.length === 1) {
+                    pollResults.push(["Zatiaľ žiadne hlasy", 1]);  // Dummy dáta pre vizualizáciu
+                }
+
                 drawChart('piechart-{{ poll.id }}', pollResults);
             {% endfor %}
         }
 
         function drawChart(elementId, data) {
             var dataTable = google.visualization.arrayToDataTable(data);
-            var options = { width: 250, height: 150 };
+            var options = { 
+                width: 250, 
+                height: 150,
+                legend: { position: "bottom" }
+            };
             var chart = new google.visualization.PieChart(document.getElementById(elementId));
             chart.draw(dataTable, options);
         }

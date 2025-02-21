@@ -241,8 +241,8 @@ input[type="file"]::file-selector-button:active {
   const chatType = "{{ chat_type }}";
   const otherUser = "{{ other_user.username|default_if_none:'' }}";
   const chatSocketUrl = chatType === "group" 
-      ? "wss://" + window.location.host + "/wss/group/" 
-      : "wss://" + window.location.host + "/wss/private/" + otherUser + "/";
+      ? "ws://" + window.location.host + "/ws/group/" 
+      : "ws://" + window.location.host + "/ws/private/" + otherUser + "/";
 
   const chatSocket = new WebSocket(chatSocketUrl);
 

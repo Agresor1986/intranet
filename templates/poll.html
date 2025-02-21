@@ -93,20 +93,23 @@
       <hr class="my-4">
       <h4>Výsledky:</h4>
       <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-      <div id="piechart"></div>
-      <script type="text/javascript">
-        var poll_results = {{ poll_results|safe }};
-        google.charts.load('current', { 'packages': ['corechart'] });
-        google.charts.setOnLoadCallback(drawChart);
-        function drawChart() {
-          poll_results.unshift(["Choice", "Vote Count"]);
-          var data = google.visualization.arrayToDataTable(poll_results);
-          var options = { 'width': 500, 'height': 350 };
-          var chart = new google.visualization.PieChart(document.getElementById('piechart'));
-          chart.draw(data, options);
-        }
-      </script>
-
+      {% if poll_results %}
+        <div id="piechart"></div>
+          <script type="text/javascript">
+            var poll_results = {{ poll_results|safe }};
+            google.charts.load('current', { 'packages': ['corechart'] });
+            google.charts.setOnLoadCallback(drawChart);
+            function drawChart() {
+              poll_results.unshift(["Choice", "Vote Count"]);
+              var data = google.visualization.arrayToDataTable(poll_results);
+              var options = { 'width': 500, 'height': 350 };
+              var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+              chart.draw(data, options);
+            }
+          </script>
+      {% else %}
+        <p>Zatiaľ neboli odovzdané žiadne hlasy.</p>
+      {% endif %}
     </div>
   </div>
 {% else %}

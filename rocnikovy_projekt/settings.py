@@ -68,16 +68,26 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'rocnikovy_projekt.urls'
 
+# Konfigurácia šablón (templates)
+# Určuje, ako sa budú šablóny načítavať, kde sa budú hľadať a aké kontextové procesory sa použijú 
 TEMPLATES = [
     {
+        # Určuje, že Django použije vlastný backend na spracovanie šablón
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        # Definuje zoznam adresárov, v ktorých Django hľadá šablóny
         "DIRS": [os.path.join(BASE_DIR, 'templates')],
+        # Ak je nastavené na True, Django bude hľadať šablóny aj v aplikáciách
         'APP_DIRS': True,
+        # Ďalšie nastavenia pre spracovanie šablón
         'OPTIONS': {
             'context_processors': [
+                # Pridáva premenné do kontextu šablón na ladenie
                 'django.template.context_processors.debug',
+                # Umožňuje prístup k objektu request v šablónach
                 'django.template.context_processors.request',
+                # Pridáva do kontextu informácie o prihlásenom používateľovi
                 'django.contrib.auth.context_processors.auth',
+                # Umožňuje zobrazovanie správ (napr. success, error)
                 'django.contrib.messages.context_processors.messages',
             ],
         },
