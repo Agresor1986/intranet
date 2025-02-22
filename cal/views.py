@@ -136,8 +136,12 @@ Buďte pripravení!
 def check_event_start_notifications():
     now_time = now()
 
-    # 🔹 Klasická notifikácia: Keď udalosť začína teraz
-    events_starting_now = Event.objects.filter(start_time__lte=now_time, start_time__gte=now_time - timedelta(minutes=1))
+    # 🔹 Klasická notifikácia: Keď udalosť práve začína
+    events_starting_now = Event.objects.filter(
+        start_time__lte=now_time, 
+        start_time__gt=now_time - timedelta(minutes=1),  # Udalosti, ktoré začali pred max 1 min
+        notification_sent_today=False
+    )
     for event in events_starting_now:
         event_url = reverse('cal:event_edit', kwargs={'event_id': event.id})
         if event.is_global:
@@ -153,9 +157,14 @@ def check_event_start_notifications():
                 message=f'⏰ Vaša udalosť <strong>"{event.title}"</strong> práve začína!',
                 url=event_url
             )
+        event.notification_sent_today = True
+        event.save()
 
     # 🔹 Notifikácia + e-mail: Keď udalosť začína dnes
-    events_starting_today = Event.objects.filter(start_time__date=now_time.date(), notification_sent_today=False)
+    events_starting_today = Event.objects.filter(
+        start_time__date=now_time.date(), 
+        notification_sent_today=False
+    )
     for event in events_starting_today:
         event_url = reverse('cal:event_edit', kwargs={'event_id': event.id})
         Notification.objects.create(
@@ -167,14 +176,16 @@ def check_event_start_notifications():
         event.notification_sent_today = True
         event.save()
 
-    # 🔹 E-mailová notifikácia: 5 minút pred začiatkom
+    # 🔹 E-mailová notifikácia: 5 minút pred začiatkom (opravené načasovanie)
     five_minutes_from_now = now_time + timedelta(minutes=5)
-    events_starting_in_five_minutes = Event.objects.filter(start_time__lte=five_minutes_from_now, start_time__gte=now_time, notification_sent_five_minutes=False)
+    events_starting_in_five_minutes = Event.objects.filter(
+        start_time__range=(five_minutes_from_now - timedelta(seconds=30), five_minutes_from_now + timedelta(seconds=30)),
+        notification_sent_five_minutes=False
+    )
     for event in events_starting_in_five_minutes:
         send_event_reminder(event, "five_minutes")
         event.notification_sent_five_minutes = True
         event.save()
-
 @login_required
 def delete_event(request, event_id):
     event = get_object_or_404(Event, pk=event_id)
