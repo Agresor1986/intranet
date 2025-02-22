@@ -6,14 +6,14 @@ def send_mail_page(request):
     result = None  # Výsledok operácie
     if request.method == 'POST':
         address = request.POST.get('address')  # Príjemca
-        subject = request.POST.get('subject')  # Predmet
+        subject = request.POST.get('subject', '').strip()  # Predmet
         message = request.POST.get('message')  # Správa
         file = request.FILES.get('file')  # Súbor (ak je pripojený)
 
-        if address and subject and message:
+        if address and message:  # Predmet už nemusí byť kontrolovaný
             try:
-                user_email = request.user.email  # Používateľský e-mail priamo z modelu User
-                if subject.startswith("Od: "):
+                user_email = request.user.email  # Používateľský e-mail
+                if not subject:  # Ak je predmet prázdny, nastaví sa predvolená hodnota
                     subject = f"Od: {user_email}"
 
                 email = EmailMessage(
@@ -34,6 +34,7 @@ def send_mail_page(request):
                     recipient=address,
                     subject=subject,
                     message=message,
+                    file=file if file else None,  # Uloženie súboru iba ak existuje
                 )
                 result = 'Email bol poslaný!'
             except Exception as e:
@@ -42,3 +43,4 @@ def send_mail_page(request):
             result = 'Všetky polia sú povinné.'
 
     return render(request, "mail.html", {'result': result})
+

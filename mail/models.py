@@ -8,7 +8,6 @@ class UserProfile(models.Model):
     def __str__(self):
         return f"{self.user.username}'s Profile"
 
-
 class SentEmail(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sent_emails")
     recipient = models.EmailField()
@@ -19,6 +18,6 @@ class SentEmail(models.Model):
 
     def __str__(self):
         return f"Email from {self.sender.username} to {self.recipient}"
+
     def file_name(self):
         return self.file.name.split('/')[-1] if self.file else None
-    
