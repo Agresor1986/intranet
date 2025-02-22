@@ -176,16 +176,18 @@ def check_event_start_notifications():
         event.notification_sent_today = True
         event.save()
 
-    # 🔹 E-mailová notifikácia: 5 minút pred začiatkom (opravené načasovanie)
+    # 🔹 E-mailová notifikácia: 5 minút pred začiatkom (opravené)
     five_minutes_from_now = now_time + timedelta(minutes=5)
     events_starting_in_five_minutes = Event.objects.filter(
-        start_time__range=(five_minutes_from_now - timedelta(seconds=30), five_minutes_from_now + timedelta(seconds=30)),
+        start_time__gte=five_minutes_from_now - timedelta(seconds=30),  # Presne 5 min pred štartom ±30 sekúnd
+        start_time__lte=five_minutes_from_now + timedelta(seconds=30),
         notification_sent_five_minutes=False
     )
     for event in events_starting_in_five_minutes:
         send_event_reminder(event, "five_minutes")
         event.notification_sent_five_minutes = True
         event.save()
+
 @login_required
 def delete_event(request, event_id):
     event = get_object_or_404(Event, pk=event_id)
