@@ -37,6 +37,23 @@ class CalendarView(LoginRequiredMixin, generic.ListView):
         context['next_month'] = next_month(d)
         return context
 
+def get_date(req_month):
+    if req_month:
+        year, month = (int(x) for x in req_month.split('-'))
+        return datetime(year, month, 1)
+    return datetime.today()
+
+def prev_month(d):
+    first = d.replace(day=1)
+    prev_month = first - timedelta(days=1)
+    return f'month={prev_month.year}-{prev_month.month}'
+
+def next_month(d):
+    days_in_month = calendar.monthrange(d.year, d.month)[1]
+    last = d.replace(day=days_in_month)
+    next_month = last + timedelta(days=1)
+    return f'month={next_month.year}-{next_month.month}'
+
 @login_required
 def event(request, event_id=None):
     instance = get_object_or_404(Event, pk=event_id) if event_id else Event(user=request.user)
@@ -77,9 +94,8 @@ def event(request, event_id=None):
 def check_event_start_notifications():
     now_time = now()
     
-    # Notifikácia pre udalosti začínajúce dnes
     events_starting_today = Event.objects.filter(
-        start_time__date=now_time.date()
+        start_time__date=now_time.date(), notification_sent_today=False
     )
     for event in events_starting_today:
         event_url = reverse('cal:event_edit', kwargs={'event_id': event.id})
@@ -97,11 +113,13 @@ def check_event_start_notifications():
                 recipient_list=[user.email],
                 fail_silently=True,
             )
+        event.notification_sent_today = True
+        event.save()
     
-    # Notifikácia 5 minút pred začiatkom udalosti
     events_starting_soon = Event.objects.filter(
         start_time__lte=now_time + timedelta(minutes=5),
-        start_time__gte=now_time
+        start_time__gte=now_time,
+        notification_sent_five_minutes=False
     )
     for event in events_starting_soon:
         event_url = reverse('cal:event_edit', kwargs={'event_id': event.id})
@@ -119,6 +137,8 @@ def check_event_start_notifications():
                 recipient_list=[user.email],
                 fail_silently=True,
             )
+        event.notification_sent_five_minutes = True
+        event.save()
 
 @login_required
 def delete_event(request, event_id):
@@ -128,4 +148,3 @@ def delete_event(request, event_id):
         return HttpResponseRedirect(reverse('cal:calendar'))
     event.delete()
     return HttpResponseRedirect(reverse('cal:calendar'))
-
