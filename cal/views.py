@@ -16,7 +16,6 @@ from django.utils.timezone import now
 from django.db.models import Q
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
-from django.conf import settings
 
 User = get_user_model()
 
@@ -25,6 +24,7 @@ class CalendarView(LoginRequiredMixin, generic.ListView):
     template_name = 'calendar.html'
 
     def get_queryset(self):
+        # Kontrola začiatku eventov
         check_event_start_notifications()
         return Event.objects.filter(Q(user=self.request.user) | Q(is_global=True))
 
@@ -59,6 +59,7 @@ def event(request, event_id=None):
     instance = get_object_or_404(Event, pk=event_id) if event_id else Event(user=request.user)
     view_only = instance.is_global and not request.user.is_staff
 
+    # Označenie notifikácie ako prečítanej pri zobrazení eventu
     if event_id:
         event_url = reverse('cal:event_edit', kwargs={'event_id': event_id})
         Notification.objects.filter(user=request.user, url=event_url).delete()
@@ -76,6 +77,7 @@ def event(request, event_id=None):
             event.user = request.user
             event.save()
 
+            # Notifikácia pre všetkých používateľov okrem admina, ktorý event vytvoril
             if request.user.is_staff and event.is_global:
                 event_url = reverse('cal:event_edit', kwargs={'event_id': event.id})
                 for user in User.objects.exclude(id=request.user.id):
@@ -92,45 +94,127 @@ def event(request, event_id=None):
     return render(request, 'event.html', {'form': form, 'view_only': view_only})
 
 def check_event_start_notifications():
+    """ Skontroluje, či práve nezačal nejaký event a pošle notifikáciu """
     now_time = now()
     
-    events_starting_now = Event.objects.filter(
-        start_time__lte=now_time, start_time__gte=now_time - timedelta(minutes=1)
+    # Notifikácia presne v čase začiatku eventu (iba pre vlastné eventy alebo globálne)
+    events_to_notify_now = Event.objects.filter(
+        start_time__lte=now_time, 
+        start_time__gte=now_time - timedelta(minutes=1),
+        notification_sent_today=False
     )
-    for event in events_starting_now:
-        event_url = reverse('cal:event_edit', kwargs={'event_id': event.id})
-        message = f'Udalosť "{event.title}" práve začína!'
-        if event.is_global:
-            users = User.objects.all()
-        else:
-            users = [event.user]
-        for user in users:
-            Notification.objects.create(user=user, message=message, url=event_url)
-    
-    events_starting_soon = Event.objects.filter(
-    start_time__gte=now_time + timedelta(minutes=4),
-    start_time__lt=now_time + timedelta(minutes=6),
-    notification_sent_five_minutes=False
-    )
-    for event in events_starting_soon:
-        event_url = reverse('cal:event_edit', kwargs={'event_id': event.id})
-        message = f'Udalosť "{event.title}" začne o 5 minút!'
-        if event.is_global:
-            users = User.objects.all()
-        else:
-            users = [event.user]
-        for user in users:
-            Notification.objects.create(user=user, message=message, url=event_url)
-            send_mail(
-                subject='Udalosť začne o 5 minút',
-                message=message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                fail_silently=True,
-            )
-        event.notification_sent_five_minutes = True
+    for event in events_to_notify_now:
+        event_url = reverse('cal:event_edit', kwargs={'event_id': event.id})  # Opravené
+        if not Notification.objects.filter(user=event.user, url=event_url).exists():
+            if event.is_global:
+                for user in User.objects.all():
+                    Notification.objects.create(
+                        user=user,
+                        message=f'Dôležitá udalosť <strong>"{event.title}"</strong> teraz začína!',
+                        url=event_url
+                    )
+                    # Poslať e-mailovú notifikáciu
+                    subject = f'Udalosť "{event.title}" teraz začína!'
+                    message = f"""
+                    Udalosť "{event.title}" teraz začína!
+                    Čas začiatku: {event.start_time}
+                    Popis: {event.description}
+                    """
+                    send_mail(subject, message, 'stredak.michael@gmail.com', [user.email])
+            else:
+                Notification.objects.create(
+                    user=event.user,
+                    message=f'Vaša udalosť <strong>"{event.title}"</strong> teraz začína!',
+                    url=event_url
+                )
+                # Poslať e-mailovú notifikáciu
+                subject = f'Vaša udalosť "{event.title}" teraz začína!'
+                message = f"""
+                Vaša udalosť "{event.title}" teraz začína!
+                Čas začiatku: {event.start_time}
+                Popis: {event.description}
+                """
+                send_mail(subject, message, 'stredak.michael@gmail.com', [event.user.email])
+        event.notification_sent_today = True
         event.save()
 
+    # Notifikácia, že event začína dnes (iba pre vlastné eventy alebo globálne)
+    events_starting_today = Event.objects.filter(
+        start_time__date=now_time.date(), notification_sent_today=False
+    )
+    for event in events_starting_today:
+        event_url = reverse('cal:event_edit', kwargs={'event_id': event.id})  # Opravené
+        if event.is_global:
+            for user in User.objects.all():
+                Notification.objects.create(
+                    user=user,
+                    message=f'Dôležitá udalosť <strong>"{event.title}"</strong> dnes začína!',
+                    url=event_url
+                )
+                # Poslať e-mailovú notifikáciu
+                subject = f'Udalosť "{event.title}" dnes začína!'
+                message = f"""
+                Udalosť "{event.title}" dnes začína!
+                Čas začiatku: {event.start_time}
+                Popis: {event.description}
+                """
+                send_mail(subject, message, 'stredak.michael@gmail.com', [user.email])
+        else:
+            Notification.objects.create(
+                user=event.user,
+                message=f'Vaša udalosť <strong>"{event.title}"</strong> dnes začína!',
+                url=event_url
+            )
+            # Poslať e-mailovú notifikáciu
+            subject = f'Vaša udalosť "{event.title}" dnes začína!'
+            message = f"""
+            Vaša udalosť "{event.title}" dnes začína!
+            Čas začiatku: {event.start_time}
+            Popis: {event.description}
+            """
+            send_mail(subject, message, 'stredak.michael@gmail.com', [event.user.email])
+        event.notification_sent_today = True
+        event.save()
+
+    # Notifikácia 5 minút pred začiatkom eventu
+    events_starting_in_five_minutes = Event.objects.filter(
+        start_time__lte=now_time + timedelta(minutes=5),
+        start_time__gte=now_time,
+        notification_sent_five_minutes=False
+    )
+    for event in events_starting_in_five_minutes:
+        event_url = reverse('cal:event_edit', kwargs={'event_id': event.id})  # Opravené
+        if event.is_global:
+            for user in User.objects.all():
+                Notification.objects.create(
+                    user=user,
+                    message=f'Dôležitá udalosť <strong>"{event.title}"</strong> začína o 5 minút!',
+                    url=event_url
+                )
+                # Poslať e-mailovú notifikáciu
+                subject = f'Udalosť "{event.title}" začína o 5 minút!'
+                message = f"""
+                Udalosť "{event.title}" začína o 5 minút!
+                Čas začiatku: {event.start_time}
+                Popis: {event.description}
+                """
+                send_mail(subject, message, 'stredak.michael@gmail.com', [user.email])
+        else:
+            Notification.objects.create(
+                user=event.user,
+                message=f'Vaša udalosť <strong>"{event.title}"</strong> začína o 5 minút!',
+                url=event_url
+            )
+            # Poslať e-mailovú notifikáciu
+            subject = f'Vaša udalosť "{event.title}" začína o 5 minút!'
+            message = f"""
+            Vaša udalosť "{event.title}" začína o 5 minút!
+            Čas začiatku: {event.start_time}
+            Popis: {event.description}
+            """
+            send_mail(subject, message, 'stredak.michael@gmail.com', [event.user.email])
+        event.notification_sent_five_minutes = True
+        event.save()
 @login_required
 def delete_event(request, event_id):
     event = get_object_or_404(Event, pk=event_id)
@@ -139,4 +223,3 @@ def delete_event(request, event_id):
         return HttpResponseRedirect(reverse('cal:calendar'))
     event.delete()
     return HttpResponseRedirect(reverse('cal:calendar'))
-
