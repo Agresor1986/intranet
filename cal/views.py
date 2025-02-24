@@ -79,7 +79,7 @@ def check_event_start_notifications():
     
     # Notifikácia pre udalosti začínajúce dnes
     events_starting_today = Event.objects.filter(
-        start_time__date=now_time.date(), notification_sent_today=False
+        start_time__date=now_time.date()
     )
     for event in events_starting_today:
         event_url = reverse('cal:event_edit', kwargs={'event_id': event.id})
@@ -97,14 +97,11 @@ def check_event_start_notifications():
                 recipient_list=[user.email],
                 fail_silently=True,
             )
-        event.notification_sent_today = True
-        event.save()
     
     # Notifikácia 5 minút pred začiatkom udalosti
     events_starting_soon = Event.objects.filter(
         start_time__lte=now_time + timedelta(minutes=5),
-        start_time__gte=now_time,
-        notification_sent_today=False
+        start_time__gte=now_time
     )
     for event in events_starting_soon:
         event_url = reverse('cal:event_edit', kwargs={'event_id': event.id})
@@ -122,8 +119,6 @@ def check_event_start_notifications():
                 recipient_list=[user.email],
                 fail_silently=True,
             )
-        event.notification_sent_today = True
-        event.save()
 
 @login_required
 def delete_event(request, event_id):
@@ -133,3 +128,4 @@ def delete_event(request, event_id):
         return HttpResponseRedirect(reverse('cal:calendar'))
     event.delete()
     return HttpResponseRedirect(reverse('cal:calendar'))
+
