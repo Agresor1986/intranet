@@ -94,36 +94,27 @@ def event(request, event_id=None):
 def check_event_start_notifications():
     now_time = now()
     
-    events_starting_today = Event.objects.filter(
-        start_time__date=now_time.date(), notification_sent_today=False
+    events_starting_now = Event.objects.filter(
+        start_time__lte=now_time, start_time__gte=now_time - timedelta(minutes=1)
     )
-    for event in events_starting_today:
+    for event in events_starting_now:
         event_url = reverse('cal:event_edit', kwargs={'event_id': event.id})
-        message = f'Dôležitá udalosť "{event.title}" dnes začína!'
+        message = f'Udalosť "{event.title}" práve začína!'
         if event.is_global:
             users = User.objects.all()
         else:
             users = [event.user]
         for user in users:
             Notification.objects.create(user=user, message=message, url=event_url)
-            send_mail(
-                subject='Pripomienka: Udalosť dnes začína',
-                message=message,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                fail_silently=True,
-            )
-        event.notification_sent_today = True
-        event.save()
     
     events_starting_soon = Event.objects.filter(
-        start_time__lte=now_time + timedelta(minutes=5),
-        start_time__gte=now_time,
-        notification_sent_five_minutes=False
+    start_time__gte=now_time + timedelta(minutes=4),
+    start_time__lt=now_time + timedelta(minutes=6),
+    notification_sent_five_minutes=False
     )
     for event in events_starting_soon:
         event_url = reverse('cal:event_edit', kwargs={'event_id': event.id})
-        message = f'Dôležitá udalosť "{event.title}" začne o 5 minút!'
+        message = f'Udalosť "{event.title}" začne o 5 minút!'
         if event.is_global:
             users = User.objects.all()
         else:
@@ -148,3 +139,4 @@ def delete_event(request, event_id):
         return HttpResponseRedirect(reverse('cal:calendar'))
     event.delete()
     return HttpResponseRedirect(reverse('cal:calendar'))
+
