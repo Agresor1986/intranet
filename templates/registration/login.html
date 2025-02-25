@@ -103,6 +103,12 @@
         h2 {
             margin-top:0px;
         }
+        .admin-message {
+            color:red;
+            margin:0px;
+            margin-top:10px;
+            font-weight:bold;
+        }
     </style>
 </head>
 
@@ -131,6 +137,11 @@
                 </div>
                 <!-- Tlačidlo na odoslanie formulára -->
                 <button type="submit" class="btn-submit"><strong>Prihlásiť sa</strong></button>
+                {% if messages %}
+                    {% for message in messages %}
+                        <p class="admin-message">{{ message }}</p>
+                    {% endfor %}
+                {% endif %}
             </form>
         </div>
     </div>
