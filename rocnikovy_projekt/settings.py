@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'documents',
     'mail',
     'notifications',
+    'rocnikovy_projekt',
     'channels',
     'daphne' ,
     'django.contrib.staticfiles',
