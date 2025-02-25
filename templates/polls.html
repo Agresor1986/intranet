@@ -90,6 +90,11 @@
         font-size: 14px;
         color: #555;
     }
+    .no-votes {
+        color: #888;
+        font-style: italic;
+        margin-top: 10px;
+    }
 </style>
 
 {% if request.user.is_authenticated %}
@@ -105,7 +110,11 @@
                 {% for poll in polls %}
                     <div class="av_polls">
                         <h5>{{ poll.name }}</h5>
-                        <div id="piechart-{{ poll.id }}"></div>
+                        {% if poll.total_votes == 0 %}
+                            <p class="no-votes">Zatiaľ žiadne hlasy. Buďte prvý kto zahlasuje!</p>
+                        {% else %}
+                            <div id="piechart-{{ poll.id }}"></div>
+                        {% endif %}
                         <div class="vote-timestamp">
                             <a href="{% url 'PollApp:poll' poll.id %}" class="btn btn-primary">Hlasovať</a>
                             <p class="timestamp">{{ poll.timestamp|date:"d.m.Y H:i" }}</p>
@@ -123,19 +132,16 @@
 
         function initCharts() {
             {% for poll in polls %}
-                var pollResults = [
-                    ["Možnosť", "Počet hlasov"]
-                    {% for choice in poll.choices.all %}
-                        , ["{{ choice.name|escapejs }}", {{ choice.vote_count }}]
-                    {% endfor %}
-                ];
+                {% if poll.total_votes > 0 %}
+                    var pollResults = [
+                        ["Možnosť", "Počet hlasov"]
+                        {% for choice in poll.choices.all %}
+                            , ["{{ choice.name|escapejs }}", {{ choice.vote_count }}]
+                        {% endfor %}
+                    ];
 
-                // Ak nie sú žiadne hlasy, zobrazíme defaultné dáta
-                if (pollResults.length === 1) {
-                    pollResults.push(["Zatiaľ žiadne hlasy", 1]);  // Dummy dáta pre vizualizáciu
-                }
-
-                drawChart('piechart-{{ poll.id }}', pollResults);
+                    drawChart('piechart-{{ poll.id }}', pollResults);
+                {% endif %}
             {% endfor %}
         }
 
