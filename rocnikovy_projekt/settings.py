@@ -171,13 +171,18 @@ DEFAULT_FROM_EMAIL = 'stredak.michael@gmail.com'
 SESSION_COOKIE_AGE = 900  # 15 minutes
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Zatvorenie prehliadača odhlási užívateľa
 
-
+CSRF_COOKIE_SECURE = True  # Len cez HTTPS
+# Dôveryhodné domény pre CSRF ochranu (POST requesty)
 CSRF_TRUSTED_ORIGINS = [
-    'https://www.firma-intranet.great-site.net',
+    'https://www.firma-intranet.great-site.net', # Názov domény
 ]
 
+SECURE_BROWSER_XSS_FILTER = True  # Ochrana pred XSS
+# Povolené zdroje obsahu (všetko len z vlastnej domény)
 CSP_DEFAULT_SRC = ("'self'",)
-CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'")
+# Povolené JavaScript zdroje (z vlastnej domény + inline skripty)
+# 'unsafe-inline' môže byť bezpečnostné riziko (XSS útoky)
+CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'") 
 
 
 

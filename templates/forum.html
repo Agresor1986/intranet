@@ -173,11 +173,15 @@
                                 <a href="?show_all_forum_id={{ item.forum.id }}" class="btn btn-success">Zobraziť všetky komentáre</a>
                             {% endif %}
                         {% endif %}
+
                         <form method="POST" action="{% url 'addInDiscussion' item.forum.id %}" class="btn-right">
+
                             {% csrf_token %}
+                            
                             <button class="btn btn-success">Pridať komentár</button>
                         </form>
                     </div>
+                    
                 </div>
             {% endfor %}
         </div>

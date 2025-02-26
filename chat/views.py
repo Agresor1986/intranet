@@ -5,10 +5,12 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from notifications.models import Notification
 import re
+import bleach
 
 def convert_urls_to_links(text):
     if not text:
         return ""
+    text = bleach.clean(text)
     url_pattern = r'(https?://[^\s]+)'
     return re.sub(url_pattern, r'<a href="\1" target="_blank">\1</a>', text)
 

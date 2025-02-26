@@ -105,10 +105,12 @@
                             <div>Žiadne dokumenty k dispozícii</div>
                         {% endif %}
                     </div>
+
                     <form action="{% url 'delete_document' document.id %}" method="post" style="margin: 0;">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-delete" onclick="return confirm('Ste si istý, že chcete vymazať tento dokument?');">Vymazať</button>
                     </form>
+                    
                 </li>
             {% empty %}
                 <li class="doc-item">Žiadne dokumenty k dispozícii</li>
