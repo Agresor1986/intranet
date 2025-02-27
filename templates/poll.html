@@ -54,37 +54,45 @@
 {% if request.user.is_authenticated %}
   <div class="poll">
     <div class="pll">
-
       <h2>{{ poll.name }}</h2>
       <i>
         <h6>{{ poll.description }}</h6>
       </i>
       <hr class="my-4">
 
-      {% if user_vote %}
+      {% if not is_active %}
         <div class="alert alert-info">
-          Už ste hlasovali pre možnosť: <strong>{{ user_vote.choice.name }}</strong> Nižšie môžte zmeniť svoj hlas. 
+          Hlasovanie bolo ukončené.
         </div>
       {% endif %}
+
+      {% if user_vote %}
+        <div class="alert alert-info">
+          Už ste hlasovali pre možnosť: <strong>{{ user_vote.choice.name }}</strong>
+        </div>
+      {% endif %}
+
       {% if success_message %}
         <div class="alert alert-success">{{ success_message }}</div>
       {% endif %}
 
-      <form method="post" onsubmit="return validateForm()">
-        {% csrf_token %}
-        {% for choice in poll.choices.all %}
-        <div class="form-check">
-          <input class="form-check-input" type="radio" name="choice_id" id="{{ choice.id }}" value="{{ choice.id }}"
-          {% if user_vote and user_vote.choice.id == choice.id %}checked{% endif %}>
-          <label class="form-check-label" for="{{ choice.id }}">
-            {{ choice.name }}
-          </label>
-        </div>
-        {% endfor %}
-        <hr class="my-4">
-        <button class="btn btn-vote">Hlasovať</button>
-        <a href="{% url 'PollApp:polls' %}" class="btn btn-exit">Naspäť</a>
-      </form>
+      {% if is_active %}
+        <form method="post" onsubmit="return validateForm()">
+          {% csrf_token %}
+          {% for choice in poll.choices.all %}
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="choice_id" id="{{ choice.id }}" value="{{ choice.id }}"
+            {% if user_vote and user_vote.choice.id == choice.id %}checked{% endif %}>
+            <label class="form-check-label" for="{{ choice.id }}">
+              {{ choice.name }}
+            </label>
+          </div>
+          {% endfor %}
+          <hr class="my-4">
+          <button class="btn btn-vote">Hlasovať</button>
+          <a href="{% url 'PollApp:polls' %}" class="btn btn-exit">Naspäť</a>
+        </form>
+      {% endif %}
 
       <div id="error-message">
         Prosím vyberte si možnosť predtým ako budete hlasovať.
@@ -138,4 +146,3 @@
 </script>
 
 {% endblock %}
-

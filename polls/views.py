@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.views import View
 from django.contrib.auth.models import User
 from .models import Poll, Choice, Vote
@@ -28,14 +28,34 @@ class PollView(View):
             user_vote = Vote.objects.filter(poll=poll, user=request.user).first()
             Notification.objects.filter(user=request.user, url=f"/polls/poll/{poll.id}/").delete()
 
-        return render(request, "poll.html", {"poll": poll, "user_vote": user_vote})
+        # Získanie výsledkov hlasovania
+        poll_results = [[choice.name, Vote.objects.filter(poll=poll, choice=choice).count()] for choice in poll.choices.all()]
+
+        return render(request, "poll.html", {
+            "poll": poll,
+            "user_vote": user_vote,
+            "poll_results": poll_results,
+            "is_active": poll.is_active()  # Pridané do kontextu
+        })
 
     def post(self, request, poll_id):
         poll = get_object_or_404(Poll, id=poll_id)
+
+        # Kontrola, či je hlasovanie aktívne
+        if not poll.is_active():
+            return render(request, "poll.html", {
+                "poll": poll,
+                "error_message": "Hlasovanie bolo ukončené.",
+                "poll_results": [[choice.name, Vote.objects.filter(poll=poll, choice=choice).count()] for choice in poll.choices.all()]
+            })
+
         choice_id = request.POST.get('choice_id')
 
         if not request.user.is_authenticated:
-            return render(request, "poll.html", {"poll": poll, "error_message": "You must be logged in to vote."})
+            return render(request, "poll.html", {
+                "poll": poll,
+                "error_message": "Musíte byť prihlásený, aby ste mohli hlasovať."
+            })
 
         choice = get_object_or_404(Choice, id=choice_id)
         existing_vote = Vote.objects.filter(poll=poll, user=request.user).first()
@@ -43,14 +63,19 @@ class PollView(View):
         if existing_vote:
             existing_vote.choice = choice
             existing_vote.save()
-            success_message = "Váš hlas bol pridaný."
+            success_message = "Váš hlas bol aktualizovaný."
         else:
             Vote.objects.create(poll=poll, choice=choice, user=request.user)
             success_message = "Váš hlas bol zaznamenaný."
 
         poll_results = [[choice.name, Vote.objects.filter(poll=poll, choice=choice).count()] for choice in poll.choices.all()]
 
-        return render(request, "poll.html", {"poll": poll, "success_message": success_message, "poll_results": poll_results})
+        return render(request, "poll.html", {
+            "poll": poll,
+            "success_message": success_message,
+            "poll_results": poll_results,
+            "is_active": poll.is_active()
+        })
 
 @method_decorator(login_required, name='dispatch')
 class CreatePollView(View):
@@ -67,19 +92,17 @@ class CreatePollView(View):
         poll_name = request.POST.get("poll_name")
         poll_description = request.POST.get("poll_description")
         choice_names = request.POST.getlist("choices")
+        end_date = request.POST.get("end_date")  # Pridané na získanie dátumu ukončenia
 
         # Odstránenie prázdnych hodnôt
         choice_names = list(filter(None, map(str.strip, choice_names)))
-
-        # Debugging - pozrieme sa, čo sa skutočne spracováva
-        print("Filtered choices:", choice_names)
 
         # Kontrola, či sú aspoň dve možnosti
         if len(choice_names) < 2:
             return render(request, "create_polls.html", {"error_message": "Musíte zadať aspoň dve možnosti!"})
 
         # Vytvorenie ankety
-        poll = Poll.objects.create(name=poll_name, description=poll_description)
+        poll = Poll.objects.create(name=poll_name, description=poll_description, end_date=end_date)
 
         # Vytvorenie a pridanie možností
         choices = [Choice.objects.create(name=name) for name in choice_names]

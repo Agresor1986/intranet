@@ -116,7 +116,11 @@
                             <div id="piechart-{{ poll.id }}"></div>
                         {% endif %}
                         <div class="vote-timestamp">
-                            <a href="{% url 'PollApp:poll' poll.id %}" class="btn btn-primary">Hlasovať</a>
+                            {% if poll.is_active %}  <!-- Kontrola, či je hlasovanie aktívne -->
+                                <a href="{% url 'PollApp:poll' poll.id %}" class="btn btn-primary">Hlasovať</a>
+                            {% else %}
+                                <p class="timestamp">Hlasovanie ukončené</p>
+                            {% endif %}
                             <p class="timestamp">{{ poll.timestamp|date:"d.m.Y H:i" }}</p>
                         </div>
                     </div>
