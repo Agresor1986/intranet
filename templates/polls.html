@@ -113,7 +113,7 @@
                         {% if poll.total_votes == 0 %}
                             <p class="no-votes">Zatiaľ žiadne hlasy. Buďte prvý kto zahlasuje!</p>
                         {% else %}
-                            <div id="piechart-{{ poll.id }}"></div>
+                            <div id="piechart-{{ poll.id }}" style="width: 100%; height: 150px;"></div>
                         {% endif %}
                         <div class="vote-timestamp">
                             {% if poll.is_active %}  <!-- Kontrola, či je hlasovanie aktívne -->
@@ -129,8 +129,8 @@
         </div>
     </div>
 
-    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-    <script type="text/javascript">
+    <script nonce="{{ nonce }}" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script nonce="{{ nonce }}">
         google.charts.load('current', { 'packages': ['corechart'] });
         google.charts.setOnLoadCallback(initCharts);
 
@@ -140,26 +140,20 @@
                     var pollResults = [
                         ["Možnosť", "Počet hlasov"]
                         {% for choice in poll.choices.all %}
-                            , ["{{ choice.name|escapejs }}", {{ choice.vote_count }}]
+                            , ["{{ choice.name|escapejs }}", {{ choice.vote_count|default:0 }}]
                         {% endfor %}
                     ];
 
+                    console.log("DEBUG: pollResults (poll {{ poll.id }}) =", pollResults);
                     drawChart('piechart-{{ poll.id }}', pollResults);
+                {% else %}
+                    document.getElementById('piechart-{{ poll.id }}').innerHTML = "<p>Žiadne hlasy</p>";
                 {% endif %}
             {% endfor %}
         }
-
-        function drawChart(elementId, data) {
-            var dataTable = google.visualization.arrayToDataTable(data);
-            var options = { 
-                width: 250, 
-                height: 150,
-                legend: { position: "bottom" }
-            };
-            var chart = new google.visualization.PieChart(document.getElementById(elementId));
-            chart.draw(dataTable, options);
-        }
     </script>
+
+    
 {% else %}
     <p>Please log in to see the polls.</p>
 {% endif %}

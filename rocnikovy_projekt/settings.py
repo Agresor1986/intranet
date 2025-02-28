@@ -181,8 +181,8 @@ SECURE_BROWSER_XSS_FILTER = True  # Ochrana pred XSS
 # Povolené zdroje obsahu (všetko len z vlastnej domény)
 CSP_DEFAULT_SRC = ("'self'",)
 # Povolené JavaScript zdroje (z vlastnej domény + inline skripty)
-# 'unsafe-inline' môže byť bezpečnostné riziko (XSS útoky)
-CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'") 
+CSP_SCRIPT_SRC = ("'self'", "'nonce'", "https://www.gstatic.com")
+CSP_SCRIPT_SRC_ELEM = ("'self'", "https://www.gstatic.com")
 
 
 

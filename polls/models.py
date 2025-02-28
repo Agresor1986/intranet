@@ -8,6 +8,9 @@ class Choice(models.Model):
     def __str__(self):
         return self.name
 
+    def vote_count(self):
+        return self.votes.count()
+
 class Poll(models.Model):
     name = models.CharField(max_length=50)
     description = models.TextField()

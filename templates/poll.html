@@ -100,21 +100,38 @@
 
       <hr class="my-4">
       <h4>Výsledky:</h4>
-      <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+      <script nonce="{{ nonce }}" src="https://www.gstatic.com/charts/loader.js"></script>
       {% if poll_results %}
-        <div id="piechart"></div>
-          <script type="text/javascript">
-            var poll_results = {{ poll_results|safe }};
-            google.charts.load('current', { 'packages': ['corechart'] });
-            google.charts.setOnLoadCallback(drawChart);
-            function drawChart() {
-              poll_results.unshift(["Choice", "Vote Count"]);
-              var data = google.visualization.arrayToDataTable(poll_results);
-              var options = { 'width': 500, 'height': 350 };
-              var chart = new google.visualization.PieChart(document.getElementById('piechart'));
-              chart.draw(data, options);
+        <div id="piechart" style="width: 100%; height: 350px;"></div>
+        <script nonce="{{ nonce }}">
+          google.charts.load('current', { 'packages': ['corechart'] });
+          google.charts.setOnLoadCallback(drawChart);
+
+          function drawChart() {
+            var pollResults = {{ poll_results|safe }};
+            console.log("DEBUG: pollResults =", pollResults);
+
+            if (pollResults.length === 0) {
+              document.getElementById('piechart').innerHTML = "<p>Žiadne dáta na zobrazenie grafu.</p>";
+              return;
             }
-          </script>
+
+            pollResults.unshift(["Možnosť", "Počet hlasov"]);
+            var data = google.visualization.arrayToDataTable(pollResults);
+            var options = { 
+              width: '100%', 
+              height: 350,
+              legend: { position: "bottom" },
+              pieSliceText: 'value',
+              chartArea: { width: '90%', height: '80%' }
+            };
+            var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+            chart.draw(data, options);
+          }
+        </script>
+
+      
+      
       {% else %}
         <p>Zatiaľ neboli odovzdané žiadne hlasy.</p>
       {% endif %}
@@ -123,26 +140,5 @@
 {% else %}
   <p>Please log in.</p>
 {% endif %}
-
-<script>
-  function validateForm() {
-    var choices = document.getElementsByName('choice_id');
-    var isChecked = false;
-    for (var i = 0; i < choices.length; i++) {
-      if (choices[i].checked) {
-        isChecked = true;
-        break;
-      }
-    }
-
-    if (!isChecked) {
-      document.getElementById('error-message').style.display = 'block';
-      return false; 
-    }
-
-    document.getElementById('error-message').style.display = 'none';
-    return true; 
-  }
-</script>
 
 {% endblock %}

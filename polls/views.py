@@ -5,22 +5,25 @@ from .models import Poll, Choice, Vote
 from notifications.models import Notification
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django.utils.crypto import get_random_string
 
 class HomeView(View):
     def get(self, request):
+        nonce = get_random_string(16)
         polls = Poll.objects.prefetch_related('choices').order_by('-timestamp')
 
         for poll in polls:
             total_votes = 0
             for choice in poll.choices.all():
-                choice.vote_count = Vote.objects.filter(choice=choice).count()
+                choice.vote_count = choice.votes.count()
                 total_votes += choice.vote_count
             poll.total_votes = total_votes
 
-        return render(request, "polls.html", {"polls": polls})
+        return render(request, "polls.html", {"polls": polls, "nonce": nonce})
 
 class PollView(View):
     def get(self, request, poll_id):
+        nonce = get_random_string(16)
         poll = get_object_or_404(Poll, id=poll_id)
         user_vote = None
 
@@ -28,25 +31,26 @@ class PollView(View):
             user_vote = Vote.objects.filter(poll=poll, user=request.user).first()
             Notification.objects.filter(user=request.user, url=f"/polls/poll/{poll.id}/").delete()
 
-        # Získanie výsledkov hlasovania
-        poll_results = [[choice.name, Vote.objects.filter(poll=poll, choice=choice).count()] for choice in poll.choices.all()]
+        poll_results = [[str(choice.name), Vote.objects.filter(choice=choice).count()] for choice in poll.choices.all()]
 
         return render(request, "poll.html", {
             "poll": poll,
             "user_vote": user_vote,
             "poll_results": poll_results,
-            "is_active": poll.is_active()  # Pridané do kontextu
+            "is_active": poll.is_active(),
+            "nonce": nonce
         })
 
     def post(self, request, poll_id):
+        nonce = get_random_string(16)
         poll = get_object_or_404(Poll, id=poll_id)
 
-        # Kontrola, či je hlasovanie aktívne
         if not poll.is_active():
+            poll_results = [[choice.name, Vote.objects.filter(poll=poll, choice=choice).count()] for choice in poll.choices.all()]
             return render(request, "poll.html", {
                 "poll": poll,
                 "error_message": "Hlasovanie bolo ukončené.",
-                "poll_results": [[choice.name, Vote.objects.filter(poll=poll, choice=choice).count()] for choice in poll.choices.all()]
+                "poll_results": poll_results
             })
 
         choice_id = request.POST.get('choice_id')
@@ -74,9 +78,9 @@ class PollView(View):
             "poll": poll,
             "success_message": success_message,
             "poll_results": poll_results,
-            "is_active": poll.is_active()
+            "is_active": poll.is_active(),
+            "nonce": nonce
         })
-
 @method_decorator(login_required, name='dispatch')
 class CreatePollView(View):
     def get(self, request):
