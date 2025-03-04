@@ -26,6 +26,10 @@ jobs:
         run: |
           curl https://rclone.org/install.sh | sudo bash
 
+      - name: Create rclone config directory
+        run: |
+          mkdir -p ~/.config/rclone
+
       - name: Configure rclone for MEGA
         run: |
           echo "[mega]" > ~/.config/rclone/rclone.conf
