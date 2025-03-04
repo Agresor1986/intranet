@@ -25,10 +25,11 @@ fi
 mkdir -p ~/.config/rclone
 
 # Konfigurácia Rclone
+MEGA_PASS_ENCODED=$(echo -n "$MEGA_PASS" | base64)  # Zakódovanie hesla
 echo "[mega_backup]
 type = mega
 user = $MEGA_USER
-pass = $MEGA_PASS" > ~/.config/rclone/rclone.conf
+pass = $MEGA_PASS_ENCODED" > ~/.config/rclone/rclone.conf
 
 # Kontrola pripojenia k databáze
 echo "Kontrola pripojenia k databáze..."
