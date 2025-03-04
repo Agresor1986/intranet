@@ -1,9 +1,9 @@
 name: Backup PostgreSQL to MEGA
 
 on:
+  workflow_dispatch:  # Tento riadok pridá možnosť manuálneho spustenia
   schedule:
-    - cron: "0 0 * * *"  # Spustí sa každý deň o polnoci UTC
-
+    - cron: "0 0 * * *"  # Automatické spustenie každý deň o polnoci UTC
 jobs:
   backup:
     runs-on: ubuntu-latest
