@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Premenné
-DB_NAME="$DB_NAME"
-DB_USER="$DB_USER"
-DB_PASSWORD="$DB_PASSWORD"
-DB_HOST="dpg-cv1glnl2ng1s738d0h4g-a"  # Použite váš hostname
+DB_NAME="intranet_databaza_r0nq"
+DB_USER="intranet_databaza_r0nq_user"
+DB_PASSWORD="f5QYUoydyFf1lFaiIH8oMwGsQTVOmDMa"
+DB_HOST="dpg-cv1glnl2ng1s738d0h4g-a.frankfurt-postgres.render.com"
 BACKUP_DIR="/tmp"
 FILENAME="backup_$(date +\%Y-\%m-\%d_\%H-\%M-\%S).sql"
 
