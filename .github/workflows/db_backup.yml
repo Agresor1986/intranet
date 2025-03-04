@@ -1,20 +1,22 @@
 name: Backup PostgreSQL to MEGA
 
 on:
-  workflow_dispatch:  # Tento riadok pridá možnosť manuálneho spustenia
+  workflow_dispatch:  # Manuálne spustenie
   schedule:
-    - cron: "0 0 * * *"  # Automatické spustenie každý deň o polnoci UTC
+    - cron: "0 0 * * *"  # Spustenie každý deň o polnoci UTC
+
 jobs:
   backup:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      - name: Install PostgreSQL
-        run: sudo apt-get install postgresql-client -y
+      - name: Install PostgreSQL client
+        run: sudo apt-get install -y postgresql-client
 
-      - name: Dump database
+      - name: Dump PostgreSQL database
         env:
           PGPASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
@@ -22,12 +24,14 @@ jobs:
 
       - name: Install MEGA CMD
         run: |
-          sudo apt-get update && sudo apt-get install megatools -y
+          sudo apt-get update
+          sudo apt-get install -y megatools
 
-      - name: Upload to MEGA
-        env:
-          MEGA_USER: ${{ secrets.MEGA_EMAIL }}
-          MEGA_PASS: ${{ secrets.MEGA_PASSWORD }}
-        run: |
-          megals -u "$MEGA_EMAIL" -p "$MEGA_PASSWORD"
-          megaput --path /DB_Backups/backup_$(date +%Y-%m-%d).dump backup.dump
+      - name: Login to MEGA
+        run: mega-login ${{ secrets.MEGA_EMAIL }} ${{ secrets.MEGA_PASSWORD }}
+
+      - name: Upload backup to MEGA
+        run: mega-put backup.dump /backups/
+
+      - name: Logout from MEGA
+        run: mega-logout
