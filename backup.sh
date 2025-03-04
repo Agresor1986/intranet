@@ -3,7 +3,7 @@
 # Premenné
 DB_NAME="intranet-databaza"
 DB_USER="intranet_databaza_r0nq_user"
-DB_HOST="host_render"
+DB_HOST="dpg-cv1glnl2ng1s738d0h4g-a"
 BACKUP_DIR="/tmp"
 FILENAME="backup_$(date +\%Y-\%m-\%d_\%H-\%M-\%S).sql"
 
