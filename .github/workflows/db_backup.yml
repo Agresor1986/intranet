@@ -29,5 +29,5 @@ jobs:
           MEGA_USER: ${{ secrets.MEGA_EMAIL }}
           MEGA_PASS: ${{ secrets.MEGA_PASSWORD }}
         run: |
-          megals -u "$MEGA_USER" -p "$MEGA_PASS"
+          megals -u "$MEGA_EMAIL" -p "$MEGA_PASSWORD"
           megaput --path /DB_Backups/backup_$(date +%Y-%m-%d).dump backup.dump
