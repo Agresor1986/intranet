@@ -1,13 +1,10 @@
 #!/bin/bash
 
 # Premenné zo Secrets
-DB_NAME="$DB_NAME"
-DB_USER="$DB_USER"
-DB_PASSWORD="$DB_PASSWORD"  # Ak je potrebné pre pripojenie k DB
-DB_HOST="$DB_HOST"
-MEGA_USER="$MEGA_USER"
-MEGA_PASS="$MEGA_PASS"
-
+DB_NAME="intranet-databaza"
+DB_USER="intranet_databaza_r0nq_user"
+DB_HOST="dpg-cv1glnl2ng1s738d0h4g-a"  # Použite váš hostname
+DB_PASSWORD="$DB_PASSWORD"  # Heslo z GitHub Secrets
 BACKUP_DIR="/tmp"
 FILENAME="backup_$(date +\%Y-\%m-\%d_\%H-\%M-\%S).sql"
 
