@@ -3,7 +3,7 @@
 # Premenné zo Secrets
 DB_NAME="intranet-databaza"
 DB_USER="intranet_databaza_r0nq_user"
-DB_HOST="dpg-cv1glnl2ng1s738d0h4g-a"  # Použite váš hostname
+DB_HOST="0.0.0.0/0"  # Použite váš hostname
 DB_PASSWORD="$DB_PASSWORD"  # Heslo z GitHub Secrets
 BACKUP_DIR="/tmp"
 FILENAME="backup_$(date +\%Y-\%m-\%d_\%H-\%M-\%S).sql"
