@@ -14,14 +14,13 @@ FILENAME="backup_$(date +\%Y-\%m-\%d_\%H-\%M-\%S).sql"
 # Inštalácia Rclone, ak chýba
 if ! command -v rclone &> /dev/null
 then
-    echo "Inštalácia Rclone..."
     curl https://rclone.org/install.sh | sudo bash
 fi
 
-# Vytvorenie adresára pre konfiguráciu Rclone, ak neexistuje
+# Vytvorenie adresára pre konfiguráciu Rclone
 mkdir -p ~/.config/rclone
 
-# Konfigurácia Rclone
+# Konfigurácia Rclone (stačí raz, potom ju uložíš ako secret v GitHub Actions)
 echo "[mega_backup]
 type = mega
 user = $MEGA_USER
