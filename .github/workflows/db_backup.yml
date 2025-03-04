@@ -22,12 +22,21 @@ jobs:
         run: |
           pg_dump -h ${{ secrets.DB_HOST }} -U ${{ secrets.DB_USER }} -d ${{ secrets.DB_NAME }} -F c -f backup.dump
 
-      - name: Install MEGA tools
-        run: sudo apt-get install -y megatools
-
-      - name: Upload backup to MEGA
+      - name: Install rclone
         run: |
-          megaput --username ${{ secrets.MEGA_EMAIL }} --password ${{ secrets.MEGA_PASSWORD }} backup.dump --path /Root/backups/
+          curl https://rclone.org/install.sh | sudo bash
+
+      - name: Configure rclone for MEGA
+        run: |
+          echo "[mega]" > ~/.config/rclone/rclone.conf
+          echo "type = mega" >> ~/.config/rclone/rclone.conf
+          echo "user = ${{ secrets.MEGA_EMAIL }}" >> ~/.config/rclone/rclone.conf
+          echo "pass = ${{ secrets.MEGA_PASSWORD }}" >> ~/.config/rclone/rclone.conf
+
+      - name: Upload backup to MEGA using rclone
+        run: |
+          rclone copy backup.dump mega:/Root/backups/ --progress
 
       - name: Verify upload
-        run: megals --username ${{ secrets.MEGA_EMAIL }} --password ${{ secrets.MEGA_PASSWORD }} /Root/backups/
+        run: |
+          rclone lsd mega:/Root/backups/
