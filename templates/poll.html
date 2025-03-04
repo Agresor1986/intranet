@@ -1,6 +1,10 @@
 {% extends 'base.html' %}
 {% block title %}Anketa{% endblock %}
+{% load static %}
+
 {% block content %}
+
+
 <style>
     .poll {
         font-family: 'Lato', sans-serif;
@@ -62,7 +66,7 @@
 
       {% if not is_active %}
         <div class="alert alert-info">
-          Hlasovanie bolo ukončené.
+          <strong>Hlasovanie bolo ukončené.</strong>
         </div>
       {% endif %}
 
@@ -71,7 +75,11 @@
           Už ste hlasovali pre možnosť: <strong>{{ user_vote.choice.name }}</strong>
         </div>
       {% endif %}
-
+      {% if error_message %}
+        <div class="alert alert-danger">
+          <strong>{{ error_message }}</strong>
+        </div>
+      {% endif %}
       {% if success_message %}
         <div class="alert alert-success">{{ success_message }}</div>
       {% endif %}
@@ -93,44 +101,32 @@
           <a href="{% url 'PollApp:polls' %}" class="btn btn-exit">Naspäť</a>
         </form>
       {% endif %}
-
-      <div id="error-message">
-        Prosím vyberte si možnosť predtým ako budete hlasovať.
-      </div>
-
+      <p>Hlasovanie do: {{ poll.end_date|date:"d.m.Y H:i" }}</p>
       <hr class="my-4">
       <h4>Výsledky:</h4>
-      <script nonce="{{ nonce }}" src="https://www.gstatic.com/charts/loader.js"></script>
+      <script type="text/javascript" src="{% static 'js/loader.js' %}"></script>
       {% if poll_results %}
-        <div id="piechart" style="width: 100%; height: 350px;"></div>
-        <script nonce="{{ nonce }}">
+        <div id="piechart" style="width: 100%; height: 250px;">
+        <script type="text/javascript">
           google.charts.load('current', { 'packages': ['corechart'] });
-          google.charts.setOnLoadCallback(drawChart);
+                    google.charts.setOnLoadCallback(drawChart);
 
-          function drawChart() {
-            var pollResults = {{ poll_results|safe }};
-            console.log("DEBUG: pollResults =", pollResults);
-
-            if (pollResults.length === 0) {
-              document.getElementById('piechart').innerHTML = "<p>Žiadne dáta na zobrazenie grafu.</p>";
-              return;
-            }
-
-            pollResults.unshift(["Možnosť", "Počet hlasov"]);
-            var data = google.visualization.arrayToDataTable(pollResults);
-            var options = { 
-              width: '100%', 
-              height: 350,
-              legend: { position: "bottom" },
-              pieSliceText: 'value',
-              chartArea: { width: '90%', height: '80%' }
-            };
-            var chart = new google.visualization.PieChart(document.getElementById('piechart'));
-            chart.draw(data, options);
-          }
+                    function drawChart() {
+                        var pollResults = {{ poll_results|safe }};
+                        pollResults.unshift(["Možnosť", "Počet hlasov"]);
+                        var data = google.visualization.arrayToDataTable(pollResults);
+                        var options = { 
+                            width: '100%', 
+                            height: 250,
+                            legend: { position: "bottom" },
+                            pieSliceText: 'value',
+                            chartArea: { width: '90%', height: '80%' }
+                        };
+                        var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+                        chart.draw(data, options);
+                    }
         </script>
-
-      
+        </div>
       
       {% else %}
         <p>Zatiaľ neboli odovzdané žiadne hlasy.</p>

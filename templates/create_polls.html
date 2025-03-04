@@ -85,6 +85,13 @@
         text-align:center;
         margin-top: 20px;
     }
+    .error-message{
+        text-align:center;
+    }
+    .success-message{
+        text-align:center;
+        margin-top:15px;
+    }
 </style>
 {% if request.user.is_authenticated %}
     <div class="polls">
@@ -121,8 +128,11 @@
         <a href="{% url 'PollApp:polls' %}" class="btn btn-exit">Naspäť</a>
         <button type="submit" class="btn btn-primary">Vytvoriť</button>
         </form>
+        {% if error_message %}
+            <div class="error-message">{{ error_message }}</div>
+        {% endif %}
         {% if success_message %}
-            <div class="alert alert-success">{{ success_message }}</div>
+            <div class="success-message">{{ success_message }}</div>
         {% endif %}
     </div>
     </div>

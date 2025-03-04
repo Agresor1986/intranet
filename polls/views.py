@@ -1,52 +1,94 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views import View
 from django.contrib.auth.models import User
+from django.utils import timezone
+from datetime import timedelta, datetime
 from .models import Poll, Choice, Vote
 from notifications.models import Notification
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from django.utils.crypto import get_random_string
+from django.urls import reverse
+import threading
+import time
+
+def create_notification(user, message, url=None):
+    if not Notification.objects.filter(user=user, message=message, url=url).exists():
+        Notification.objects.create(user=user, message=message, url=url)
+
+def check_and_send_notifications():
+    while True:
+        polls = Poll.objects.all()
+        now = timezone.now()
+
+        for poll in polls:
+            if not poll.is_active() and not poll.notified_closed:
+                users = User.objects.all()
+                for user in users:
+                    create_notification(
+                        user,
+                        f'Hlasovanie v ankete <strong>"{poll_name}"</strong> bolo ukončené.',
+                        url=reverse('PollApp:poll', args=[poll.id])
+                    )
+                poll.notified_closed = True
+                poll.save(update_fields=['notified_closed'])
+
+            if poll.is_active() and poll.end_date and (poll.end_date - now).total_seconds() <= 300:
+                users = User.objects.all()
+                for user in users:
+                    if not Notification.objects.filter(
+                        user=user,
+                        message=f'Hlasovanie v ankete <strong>"{poll_name}"</strong> skončí o 5 minút.',
+                        url=reverse('PollApp:poll', args=[poll.id]),
+                        timestamp__gte=now - timedelta(minutes=5)
+                    ).exists():
+                        create_notification(
+                            user,
+                            f'Hlasovanie v ankete <strong>"{poll_name}"</strong> skončí o 5 minút.',
+                            url=reverse('PollApp:poll', args=[poll.id])
+                        )
+        
+        time.sleep(60)  # Kontrola každú minútu
+
+def start_notification_checker():
+    thread = threading.Thread(target=check_and_send_notifications)
+    thread.daemon = True
+    thread.start()
+
+start_notification_checker()
 
 class HomeView(View):
     def get(self, request):
-        nonce = get_random_string(16)
         polls = Poll.objects.prefetch_related('choices').order_by('-timestamp')
 
         for poll in polls:
-            total_votes = 0
-            for choice in poll.choices.all():
-                choice.vote_count = choice.votes.count()
-                total_votes += choice.vote_count
+            total_votes = sum(choice.votes.count() for choice in poll.choices.all())
             poll.total_votes = total_votes
 
-        return render(request, "polls.html", {"polls": polls, "nonce": nonce})
+        return render(request, "polls.html", {"polls": polls})
 
 class PollView(View):
     def get(self, request, poll_id):
-        nonce = get_random_string(16)
         poll = get_object_or_404(Poll, id=poll_id)
         user_vote = None
 
         if request.user.is_authenticated:
             user_vote = Vote.objects.filter(poll=poll, user=request.user).first()
-            Notification.objects.filter(user=request.user, url=f"/polls/poll/{poll.id}/").delete()
+            Notification.objects.filter(user=request.user, url=reverse('PollApp:poll', args=[poll.id])).delete()
 
-        poll_results = [[str(choice.name), Vote.objects.filter(choice=choice).count()] for choice in poll.choices.all()]
+        poll_results = [[choice.name, choice.votes.count()] for choice in poll.choices.all()]
 
         return render(request, "poll.html", {
             "poll": poll,
             "user_vote": user_vote,
             "poll_results": poll_results,
-            "is_active": poll.is_active(),
-            "nonce": nonce
+            "is_active": poll.is_active()
         })
 
     def post(self, request, poll_id):
-        nonce = get_random_string(16)
         poll = get_object_or_404(Poll, id=poll_id)
 
         if not poll.is_active():
-            poll_results = [[choice.name, Vote.objects.filter(poll=poll, choice=choice).count()] for choice in poll.choices.all()]
+            poll_results = [[choice.name, choice.votes.count()] for choice in poll.choices.all()]
             return render(request, "poll.html", {
                 "poll": poll,
                 "error_message": "Hlasovanie bolo ukončené.",
@@ -54,6 +96,15 @@ class PollView(View):
             })
 
         choice_id = request.POST.get('choice_id')
+
+        if not choice_id:
+            poll_results = [[choice.name, choice.votes.count()] for choice in poll.choices.all()]
+            return render(request, "poll.html", {
+                "poll": poll,
+                "error_message": "Musíte vybrať možnosť, aby ste mohli hlasovať.",
+                "poll_results": poll_results,
+                "is_active": poll.is_active()
+            })
 
         if not request.user.is_authenticated:
             return render(request, "poll.html", {
@@ -72,15 +123,15 @@ class PollView(View):
             Vote.objects.create(poll=poll, choice=choice, user=request.user)
             success_message = "Váš hlas bol zaznamenaný."
 
-        poll_results = [[choice.name, Vote.objects.filter(poll=poll, choice=choice).count()] for choice in poll.choices.all()]
+        poll_results = [[choice.name, choice.votes.count()] for choice in poll.choices.all()]
 
         return render(request, "poll.html", {
             "poll": poll,
             "success_message": success_message,
             "poll_results": poll_results,
-            "is_active": poll.is_active(),
-            "nonce": nonce
+            "is_active": poll.is_active()
         })
+
 @method_decorator(login_required, name='dispatch')
 class CreatePollView(View):
     def get(self, request):
@@ -96,20 +147,54 @@ class CreatePollView(View):
         poll_name = request.POST.get("poll_name")
         poll_description = request.POST.get("poll_description")
         choice_names = request.POST.getlist("choices")
-        end_date = request.POST.get("end_date")  # Pridané na získanie dátumu ukončenia
+        end_date = request.POST.get("end_date")
 
-        # Odstránenie prázdnych hodnôt
+        # Validácia dátumu ukončenia
+        if end_date:
+            # Prevod na datetime objekt
+            end_date = datetime.fromisoformat(end_date)
+            # Nastavenie časového pásma na aktuálne (tzinfo=timezone.get_current_timezone())
+            end_date = timezone.make_aware(end_date, timezone.get_current_timezone())
+            
+            # Kontrola, či dátum ukončenia je v budúcnosti
+            if end_date <= timezone.now():
+                return render(request, "create_polls.html", {
+                    "error_message": "Dátum ukončenia musí byť v budúcnosti.",
+                    "poll_name": poll_name,
+                    "poll_description": poll_description,
+                    "choices": choice_names,
+                })
+
         choice_names = list(filter(None, map(str.strip, choice_names)))
 
-        # Kontrola, či sú aspoň dve možnosti
         if len(choice_names) < 2:
-            return render(request, "create_polls.html", {"error_message": "Musíte zadať aspoň dve možnosti!"})
+            return render(request, "create_polls.html", {
+                "error_message": "Musíte zadať aspoň dve možnosti!",
+                "poll_name": poll_name,
+                "poll_description": poll_description,
+                "choices": choice_names,
+            })
 
-        # Vytvorenie ankety
-        poll = Poll.objects.create(name=poll_name, description=poll_description, end_date=end_date)
+        poll = Poll.objects.create(
+            name=poll_name,
+            description=poll_description,
+            end_date=end_date,
+            created_by=request.user  # Nastavíme vytvárajúceho používateľa
+        )
 
-        # Vytvorenie a pridanie možností
         choices = [Choice.objects.create(name=name) for name in choice_names]
         poll.choices.set(choices)
 
-        return render(request, "create_polls.html", {"poll": poll, "success_message": "Anketa bola vytvorená!"})
+        # Pridanie notifikácie pre všetkých používateľov okrem vytvárajúceho
+        users = User.objects.exclude(id=request.user.id)
+        for user in users:
+            create_notification(
+                user,
+                f'Bola vytvorená nová anketa: <strong>"{poll_name}"</strong>',
+                url=reverse('PollApp:poll', args=[poll.id])
+            )
+
+        return render(request, "create_polls.html", {
+            "poll": poll,
+            "success_message": "Anketa bola vytvorená!",
+        })

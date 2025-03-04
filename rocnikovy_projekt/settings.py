@@ -103,7 +103,7 @@ ASGI_APPLICATION = 'rocnikovy_projekt.asgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': dj_database_url.config(default='postgresql://michael:0YC9s08DtYb6SM9hGnMOwakQOGUvlnfh@dpg-cudnnp2j1k6c73cqqi1g-a.frankfurt-postgres.render.com/intranet_databaza')
+    'default': dj_database_url.config(default='postgresql://intranet_databaza_r0nq_user:f5QYUoydyFf1lFaiIH8oMwGsQTVOmDMa@dpg-cv1glnl2ng1s738d0h4g-a.frankfurt-postgres.render.com/intranet_databaza_r0nq')
 }
 
 
@@ -177,13 +177,10 @@ CSRF_TRUSTED_ORIGINS = [
     'https://www.firma-intranet.great-site.net', # Názov domény
 ]
 
-SECURE_BROWSER_XSS_FILTER = True  # Ochrana pred XSS
-# Povolené zdroje obsahu (všetko len z vlastnej domény)
-CSP_DEFAULT_SRC = ("'self'",)
-# Povolené JavaScript zdroje (z vlastnej domény + inline skripty)
-CSP_SCRIPT_SRC = ("'self'", "'nonce'", "https://www.gstatic.com")
-CSP_SCRIPT_SRC_ELEM = ("'self'", "https://www.gstatic.com")
+SECURE_BROWSER_XSS_FILTER = True  # Ochrana pred XSS útokmi  
+SECURE_CONTENT_TYPE_NOSNIFF = True  # Zabraňuje MIME sniffing útokom  
+X_FRAME_OPTIONS = 'DENY'  # Zabraňuje clickjackingu 
+SESSION_COOKIE_HTTPONLY = True  # JavaScript nemá prístup k session cookie 
 
 
-
-
+SESSION_COOKIE_SECURE = True  # Cookie sa odosiela iba cez HTTPS (ochrana pred MITM útokmi).  

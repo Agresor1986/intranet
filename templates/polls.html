@@ -80,10 +80,11 @@
     .btn-primary {
         margin: 0;
     }
-    .timestamp {
+    .under {
         margin: 0;
         color: #555;
         font-size: 14px;
+        margin-top:10px;
     }
     .results {
         margin-top: 15px;
@@ -119,9 +120,9 @@
                             {% if poll.is_active %}  <!-- Kontrola, či je hlasovanie aktívne -->
                                 <a href="{% url 'PollApp:poll' poll.id %}" class="btn btn-primary">Hlasovať</a>
                             {% else %}
-                                <p class="timestamp">Hlasovanie ukončené</p>
+                                <p class="under">Hlasovanie ukončené</p>
                             {% endif %}
-                            <p class="timestamp">{{ poll.timestamp|date:"d.m.Y H:i" }}</p>
+                            <p class="under">Vytvorené: {{ poll.timestamp|date:"d.m.Y H:i" }}</p>
                         </div>
                     </div>
                 {% endfor %}
@@ -129,9 +130,9 @@
         </div>
     </div>
 
-    <script nonce="{{ nonce }}" src="https://www.gstatic.com/charts/loader.js"></script>
-    <script nonce="{{ nonce }}">
-        google.charts.load('current', { 'packages': ['corechart'] });
+    <script type="text/javascript" src="{% static 'js/loader.js' %}"></script>
+    <script type="text/javascript">
+         google.charts.load('current', { 'packages': ['corechart'] });
         google.charts.setOnLoadCallback(initCharts);
 
         function initCharts() {
@@ -143,15 +144,18 @@
                             , ["{{ choice.name|escapejs }}", {{ choice.vote_count|default:0 }}]
                         {% endfor %}
                     ];
-
-                    console.log("DEBUG: pollResults (poll {{ poll.id }}) =", pollResults);
                     drawChart('piechart-{{ poll.id }}', pollResults);
-                {% else %}
-                    document.getElementById('piechart-{{ poll.id }}').innerHTML = "<p>Žiadne hlasy</p>";
                 {% endif %}
             {% endfor %}
         }
-    </script>
+
+        function drawChart(elementId, results) {
+            var data = google.visualization.arrayToDataTable(results);
+            var options = { width: '100%', height: 150, legend: { position: "bottom" } };
+            var chart = new google.visualization.PieChart(document.getElementById(elementId));
+            chart.draw(data, options);
+        }
+</script>
 
     
 {% else %}
