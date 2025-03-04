@@ -1,0 +1,33 @@
+name: Backup PostgreSQL to MEGA
+
+on:
+  schedule:
+    - cron: "0 0 * * *"  # Spustí sa každý deň o polnoci UTC
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install PostgreSQL
+        run: sudo apt-get install postgresql-client -y
+
+      - name: Dump database
+        env:
+          PGPASSWORD: ${{ secrets.DB_PASSWORD }}
+        run: |
+          pg_dump -h ${{ secrets.DB_HOST }} -U ${{ secrets.DB_USER }} -d ${{ secrets.DB_NAME }} -F c -f backup.dump
+
+      - name: Install MEGA CMD
+        run: |
+          sudo apt-get update && sudo apt-get install megatools -y
+
+      - name: Upload to MEGA
+        env:
+          MEGA_USER: ${{ secrets.MEGA_EMAIL }}
+          MEGA_PASS: ${{ secrets.MEGA_PASSWORD }}
+        run: |
+          megals -u "$MEGA_USER" -p "$MEGA_PASS"
+          megaput --path /DB_Backups/backup_$(date +%Y-%m-%d).dump backup.dump
