@@ -33,14 +33,18 @@ jobs:
           sudo chown root:root /usr/bin/rclone
           sudo chmod 755 /usr/bin/rclone
           rclone version  # Overenie inštalácie
-      - name: Verify rclone secret
+
+      - name: Verify RCLONE_CONFIG variable
         run: |
-          cat "$RCLONE_CONFIG"
+          echo "Hodnota RCLONE_CONFIG:"
+          echo "$RCLONE_CONFIG"
+          echo "Koniec hodnoty RCLONE_CONFIG"
+
       - name: Set up rclone
         run: |
           mkdir -p ~/.config/rclone
           echo "$RCLONE_CONFIG" | base64 --decode > ~/.config/rclone/rclone.conf
-      
+
       - name: Verify rclone config
         run: |
           echo "Obsah rclone.conf:"
