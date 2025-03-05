@@ -39,5 +39,13 @@ jobs:
           mkdir -p ~/.config/rclone
           echo "$RCLONE_CONFIG" > ~/.config/rclone/rclone.conf
 
+      - name: Verify rclone config
+        run: |
+          cat ~/.config/rclone/rclone.conf  # Overenie konfigurácie
+          ls -la ~/.config/rclone/  # Overenie, či súbor existuje
+
+      - name: Check rclone version
+        run: rclone version  # Overenie verzie rclone
+
       - name: Upload to Google Drive
         run: rclone copy backup.dump.gz gdrive:/zaloha/
