@@ -25,10 +25,10 @@ jobs:
         run: gzip backup.dump
 
       - name: Upload to Google Drive using rclone
-        uses: rclone/rclone-action@v1
+        uses: rclone/rclone-action@v2  # Použitá verzia v2
         with:
-          command: copy  # Príkaz na nahratie súboru
-          source: backup.dump.gz  # Zdrojový súbor
-          destination: gdrive:/zaloha/  # Cieľové umiestnenie na Google Drive
+          command: copy
+          source: backup.dump.gz
+          destination: gdrive:/zaloha/
         env:
-          RCLONE_CONFIG: ${{ secrets.RCLONE_CONFIG }}  # Konfigurácia rclone
+          RCLONE_CONFIG: ${{ secrets.RCLONE_CONFIG }}
