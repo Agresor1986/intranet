@@ -37,7 +37,7 @@ jobs:
       - name: Set up rclone
         run: |
           mkdir -p ~/.config/rclone
-          echo "$RCLONE_CONFIG" > ~/.config/rclone/rclone.conf
+          echo "$RCLONE_CONFIG" | base64 --decode > ~/.config/rclone/rclone.conf
 
       - name: Verify rclone config
         run: |
