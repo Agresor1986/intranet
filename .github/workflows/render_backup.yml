@@ -24,11 +24,20 @@ jobs:
       - name: Compress backup
         run: gzip backup.dump
 
-      - name: Upload to Google Drive using rclone
-        uses: rclone/rclone-action@v2  # Použitá verzia v2
-        with:
-          command: copy
-          source: backup.dump.gz
-          destination: gdrive:/zaloha/
-        env:
-          RCLONE_CONFIG: ${{ secrets.RCLONE_CONFIG }}
+      - name: Install rclone
+        run: |
+          curl -O https://downloads.rclone.org/rclone-current-linux-amd64.zip
+          unzip rclone-current-linux-amd64.zip
+          cd rclone-*-linux-amd64
+          sudo cp rclone /usr/bin/
+          sudo chown root:root /usr/bin/rclone
+          sudo chmod 755 /usr/bin/rclone
+          rclone version  # Overenie inštalácie
+
+      - name: Set up rclone
+        run: |
+          mkdir -p ~/.config/rclone
+          echo "$RCLONE_CONFIG" > ~/.config/rclone/rclone.conf
+
+      - name: Upload to Google Drive
+        run: rclone copy backup.dump.gz gdrive:/zaloha/
