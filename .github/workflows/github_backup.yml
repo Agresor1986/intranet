@@ -29,10 +29,22 @@ jobs:
       - name: Set up rclone
         run: |
           mkdir -p ~/.config/rclone
-          echo "$RCLONE_CONFIG" > ~/.config/rclone/rclone.conf
+          echo "${{ secrets.RCLONE_CONFIG }}" | base64 --decode > ~/.config/rclone/rclone.conf
+
+      - name: Verify rclone config
+        run: |
+          echo "Obsah rclone.conf:"
+          cat ~/.config/rclone/rclone.conf
+          echo "Koniec obsahu rclone.conf"
+
+      - name: Check rclone config
+        run: rclone config show  # Overenie, či rclone vidí konfiguráciu
+
+      - name: Create backup directory on Google Drive (ak neexistuje)
+        run: rclone mkdir gdrive:zaloha  # Vytvorenie priečinka "zaloha"
 
       - name: Upload to Google Drive
-        run: rclone copy repo_backup_*.tar.gz gdrive:/zaloha/
+        run: rclone copy repo_backup_*.tar.gz gdrive:zaloha/  # Nahratie do priečinka "zaloha"
 
       - name: Clean up
         run: rm repo_backup_*.tar.gz  # Odstránenie lokálneho archívu po nahratí
