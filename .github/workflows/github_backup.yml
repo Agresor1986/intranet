@@ -14,37 +14,54 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Archive repository
-        run: tar -czvf repo_backup_$(date +%Y%m%d_%H%M%S).tar.gz .
+        run: |
+          echo "Vytváram archív repozitára..."
+          tar -czvf repo_backup_$(date +%Y%m%d_%H%M%S).tar.gz . || { echo "Chyba pri vytváraní archívu"; exit 1; }
+          echo "Archív úspešne vytvorený."
 
       - name: Install rclone
         run: |
-          curl -O https://downloads.rclone.org/rclone-current-linux-amd64.zip
-          unzip rclone-current-linux-amd64.zip
+          echo "Inštalujem rclone..."
+          curl -O https://downloads.rclone.org/rclone-current-linux-amd64.zip || { echo "Chyba pri sťahovaní rclone"; exit 1; }
+          unzip rclone-current-linux-amd64.zip || { echo "Chyba pri rozbaľovaní rclone"; exit 1; }
           cd rclone-*-linux-amd64
-          sudo cp rclone /usr/bin/
-          sudo chown root:root /usr/bin/rclone
-          sudo chmod 755 /usr/bin/rclone
-          rclone version  # Overenie inštalácie
+          sudo cp rclone /usr/bin/ || { echo "Chyba pri kopírovaní rclone"; exit 1; }
+          sudo chown root:root /usr/bin/rclone || { echo "Chyba pri nastavovaní oprávnení"; exit 1; }
+          sudo chmod 755 /usr/bin/rclone || { echo "Chyba pri nastavovaní oprávnení"; exit 1; }
+          rclone version || { echo "Chyba pri overovaní inštalácie rclone"; exit 1; }
+          echo "Rclone úspešne nainštalované."
 
       - name: Set up rclone
         run: |
-          mkdir -p ~/.config/rclone
-          echo "${{ secrets.RCLONE_CONFIG }}" | base64 --decode > ~/.config/rclone/rclone.conf
+          echo "Nastavujem rclone konfiguráciu..."
+          mkdir -p ~/.config/rclone || { echo "Chyba pri vytváraní priečinka pre rclone"; exit 1; }
+          echo "${{ secrets.RCLONE_CONFIG }}" | base64 --decode > ~/.config/rclone/rclone.conf || { echo "Chyba pri zápise konfigurácie"; exit 1; }
+          echo "Konfigurácia rclone úspešne nastavená."
 
       - name: Verify rclone config
         run: |
-          echo "Obsah rclone.conf:"
-          cat ~/.config/rclone/rclone.conf
-          echo "Koniec obsahu rclone.conf"
+          echo "Overujem rclone konfiguráciu..."
+          cat ~/.config/rclone/rclone.conf || { echo "Chyba pri čítaní konfigurácie"; exit 1; }
+          echo "Koniec obsahu rclone.conf."
 
       - name: Check rclone config
-        run: rclone config show  # Overenie, či rclone vidí konfiguráciu
+        run: |
+          echo "Kontrolujem rclone konfiguráciu..."
+          rclone config show || { echo "Chyba pri overovaní konfigurácie"; exit 1; }
 
       - name: Create backup directory on Google Drive (ak neexistuje)
-        run: rclone mkdir gdrive:zaloha  # Vytvorenie priečinka "zaloha"
+        run: |
+          echo "Vytváram priečinok na Google Drive..."
+          rclone mkdir gdrive:zaloha || { echo "Chyba pri vytváraní priečinka"; exit 1; }
 
       - name: Upload to Google Drive
-        run: rclone copy repo_backup_*.tar.gz gdrive:zaloha/  # Nahratie do priečinka "zaloha"
+        run: |
+          echo "Nahrávam archív na Google Drive..."
+          rclone copy repo_backup_*.tar.gz gdrive:zaloha/ || { echo "Chyba pri nahrávaní"; exit 1; }
+          echo "Archív úspešne nahraný."
 
       - name: Clean up
-        run: rm repo_backup_*.tar.gz  # Odstránenie lokálneho archívu po nahratí
+        run: |
+          echo "Čistím lokálne súbory..."
+          rm repo_backup_*.tar.gz || { echo "Chyba pri odstraňovaní súborov"; exit 1; }
+          echo "Čistenie dokončené."
