@@ -3,6 +3,7 @@ name: Backup Render DB to Google Drive
 on:
   schedule:
     - cron: '0 2 * * *'  # Každý deň o 2:00 UTC
+  workflow_dispatch:  # Pridané pre manuálne spustenie
 
 jobs:
   backup:
@@ -25,5 +26,8 @@ jobs:
         env:
           PGPASSWORD: ${{ secrets.DB_PASSWORD }}
 
+      - name: Compress backup
+        run: gzip backup.dump
+
       - name: Upload to Google Drive
-        run: rclone copy backup.dump gdrive:/zaloha/
+        run: rclone copy backup.dump.gz gdrive:/zaloha/
