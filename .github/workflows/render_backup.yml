@@ -1,4 +1,4 @@
-name: Backup Render DB to Google Drive (Windows)
+name: Backup Render DB to Google Drive
 
 on:
   schedule:
@@ -7,41 +7,43 @@ on:
 
 jobs:
   backup:
-    runs-on: windows-latest  # Použitie Windows runnera
+    runs-on: ubuntu-latest  # Použitie Linux runnera
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
 
       - name: Install PostgreSQL client
-        run: choco install postgresql13 -y  # Inštalácia PostgreSQL cez Chocolatey
+        run: sudo apt-get install postgresql-client -y
 
       - name: Backup database
-        run: |
-          $env:PGPASSWORD = "${{ secrets.DB_PASSWORD }}"
-          pg_dump -h ${{ secrets.DB_HOST }} -U ${{ secrets.DB_USER }} -d ${{ secrets.DB_NAME }} -F c -f backup.dump
+        run: pg_dump -h ${{ secrets.DB_HOST }} -U ${{ secrets.DB_USER }} -d ${{ secrets.DB_NAME }} -F c -f backup.dump
+        env:
+          PGPASSWORD: ${{ secrets.DB_PASSWORD }}
 
       - name: Compress backup
-        run: Compress-Archive -Path backup.dump -DestinationPath backup.zip
+        run: gzip backup.dump
 
       - name: Install rclone
         run: |
-          Invoke-WebRequest -Uri "https://downloads.rclone.org/rclone-current-windows-amd64.zip" -OutFile "rclone.zip"
-          Expand-Archive -Path "rclone.zip" -DestinationPath "rclone"
-          Move-Item -Path "rclone\rclone-*-windows-amd64\rclone.exe" -Destination "C:\Windows\System32\rclone.exe"
+          curl -O https://downloads.rclone.org/rclone-current-linux-amd64.zip
+          unzip rclone-current-linux-amd64.zip
+          cd rclone-*-linux-amd64
+          sudo cp rclone /usr/bin/
+          sudo chown root:root /usr/bin/rclone
+          sudo chmod 755 /usr/bin/rclone
           rclone version  # Overenie inštalácie
 
       - name: Set up rclone
         run: |
-          $rcloneConfig = "$env:USERPROFILE\.config\rclone\rclone.conf"
-          New-Item -ItemType Directory -Path (Split-Path $rcloneConfig) -Force
-          [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("${{ secrets.RCLONE_CONFIG }}")) | Out-File -FilePath $rcloneConfig -Encoding UTF8
+          mkdir -p ~/.config/rclone
+          echo "${{ secrets.RCLONE_CONFIG }}" | base64 --decode > ~/.config/rclone/rclone.conf
 
       - name: Verify rclone config
         run: |
-          $rcloneConfig = "$env:USERPROFILE\.config\rclone\rclone.conf"
-          Get-Content $rcloneConfig
-          Write-Output "Koniec obsahu rclone.conf"
+          echo "Obsah rclone.conf:"
+          cat ~/.config/rclone/rclone.conf
+          echo "Koniec obsahu rclone.conf"
 
       - name: Check rclone config
         run: rclone config show  # Overenie, či rclone vidí konfiguráciu
@@ -50,7 +52,7 @@ jobs:
         run: rclone mkdir gdrive:zaloha  # Vytvorenie priečinka "zaloha"
 
       - name: Upload to Google Drive
-        run: rclone copy backup.zip gdrive:zaloha/  # Nahratie do priečinka "zaloha"
+        run: rclone copy backup.dump.gz gdrive:zaloha/  # Nahratie do priečinka "zaloha"
 
       - name: Clean up
-        run: Remove-Item backup.dump, backup.zip  # Odstránenie lokálnych súborov po nahratí
+        run: rm backup.dump.gz  # Odstránenie lokálneho archívu po nahratí
