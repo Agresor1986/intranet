@@ -1,0 +1,29 @@
+name: Backup Render DB to Google Drive
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Každý deň o 2:00 UTC
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up rclone
+        run: |
+          mkdir -p ~/.config/rclone
+          echo "$RCLONE_CONFIG" > ~/.config/rclone/rclone.conf
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get install postgresql-client -y
+
+      - name: Backup database
+        run: pg_dump -h ${{ secrets.DB_HOST }} -U ${{ secrets.DB_USER }} -d ${{ secrets.DB_NAME }} -F c -f backup.dump
+        env:
+          PGPASSWORD: ${{ secrets.DB_PASSWORD }}
+
+      - name: Upload to Google Drive
+        run: rclone copy backup.dump gdrive:/zaloha/
