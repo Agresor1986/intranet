@@ -16,7 +16,13 @@ jobs:
       - name: Archive repository
         run: |
           echo "Vytváram archív repozitára..."
-          tar -czvf repo_backup_$(date +%Y%m%d_%H%M%S).tar.gz . || { echo "Chyba pri vytváraní archívu"; exit 1; }
+          # Vylúčte nepotrebné súbory a priečinky
+          tar -czvf repo_backup_$(date +%Y%m%d_%H%M%S).tar.gz \
+            --exclude='.git' \
+            --exclude='__pycache__' \
+            --exclude='node_modules' \
+            --exclude='venv' \
+            . || { echo "Chyba pri vytváraní archívu"; exit 1; }
           echo "Archív úspešne vytvorený."
 
       - name: Install rclone
