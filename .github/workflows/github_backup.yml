@@ -17,13 +17,13 @@ jobs:
         run: tar -czvf repo_backup_$(date +%Y%m%d_%H%M%S).tar.gz .
 
       - name: Upload to Google Drive using rclone
-        uses: rclone/rclone-action@v1
+        uses: rclone/rclone-action@v2  # Použitá verzia v2
         with:
-          command: copy  # Príkaz na nahratie súboru
-          source: repo_backup_*.tar.gz  # Zdrojový súbor
-          destination: gdrive:/zaloha/  # Cieľové umiestnenie na Google Drive
+          command: copy
+          source: repo_backup_*.tar.gz
+          destination: gdrive:/zaloha/
         env:
-          RCLONE_CONFIG: ${{ secrets.RCLONE_CONFIG }}  # Konfigurácia rclone
+          RCLONE_CONFIG: ${{ secrets.RCLONE_CONFIG }}
 
       - name: Clean up
-        run: rm repo_backup_*.tar.gz  # Odstránenie lokálneho archívu po nahratí
+        run: rm repo_backup_*.tar.gz
