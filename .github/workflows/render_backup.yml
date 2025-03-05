@@ -34,12 +34,6 @@ jobs:
           sudo chmod 755 /usr/bin/rclone
           rclone version  # Overenie inštalácie
 
-      - name: Verify RCLONE_CONFIG variable
-        run: |
-          echo "Hodnota RCLONE_CONFIG:"
-          echo "${{ secrets.RCLONE_CONFIG }}"
-          echo "Koniec hodnoty RCLONE_CONFIG"
-
       - name: Set up rclone
         run: |
           mkdir -p ~/.config/rclone
