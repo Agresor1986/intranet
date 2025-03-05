@@ -47,5 +47,8 @@ jobs:
       - name: Check rclone config
         run: rclone config show  # Overenie, či rclone vidí konfiguráciu
 
+      - name: Create backup directory on Google Drive (ak neexistuje)
+        run: rclone mkdir gdrive:zaloha  # Vytvorenie priečinka "zaloha"
+
       - name: Upload to Google Drive
-        run: rclone copy backup.dump.gz gdrive:/zaloha/
+        run: rclone copy backup.dump.gz gdrive:zaloha/  # Nahratie do priečinka "zaloha"
