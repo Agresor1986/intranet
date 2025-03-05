@@ -1,0 +1,24 @@
+name: Backup GitHub Repo to Google Drive
+
+on:
+  schedule:
+    - cron: '0 3 * * *'  # Každý deň o 3:00 UTC
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up rclone
+        run: |
+          mkdir -p ~/.config/rclone
+          echo "$RCLONE_CONFIG" > ~/.config/rclone/rclone.conf
+
+      - name: Archive repository
+        run: tar -czvf repo_backup.tar.gz .
+
+      - name: Upload to Google Drive
+        run: rclone copy repo_backup.tar.gz gdrive:/zaloha/
