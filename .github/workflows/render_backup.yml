@@ -44,8 +44,8 @@ jobs:
           cat ~/.config/rclone/rclone.conf  # Overenie konfigurácie
           ls -la ~/.config/rclone/  # Overenie, či súbor existuje
 
-      - name: Check rclone version
-        run: rclone version  # Overenie verzie rclone
+      - name: Check rclone config
+        run: rclone config show  # Overenie, či rclone vidí konfiguráciu
 
       - name: Upload to Google Drive
         run: rclone copy backup.dump.gz gdrive:/zaloha/
