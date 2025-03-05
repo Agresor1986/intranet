@@ -13,11 +13,6 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Set up rclone
-        run: |
-          mkdir -p ~/.config/rclone
-          echo "$RCLONE_CONFIG" > ~/.config/rclone/rclone.conf
-
       - name: Install PostgreSQL client
         run: sudo apt-get install postgresql-client -y
 
@@ -29,5 +24,11 @@ jobs:
       - name: Compress backup
         run: gzip backup.dump
 
-      - name: Upload to Google Drive
-        run: rclone copy backup.dump.gz gdrive:/zaloha/
+      - name: Upload to Google Drive using rclone
+        uses: rclone/rclone-action@v1
+        with:
+          command: copy  # Príkaz na nahratie súboru
+          source: backup.dump.gz  # Zdrojový súbor
+          destination: gdrive:/zaloha/  # Cieľové umiestnenie na Google Drive
+        env:
+          RCLONE_CONFIG: ${{ secrets.RCLONE_CONFIG }}  # Konfigurácia rclone
