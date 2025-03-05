@@ -113,6 +113,10 @@ jobs:
             --exclude='./media/*' \
             --exclude='./staticfiles/*' \
             --exclude='*.py' \
+            --exclude='*.log' \
+            --exclude='*.tmp' \
+            --exclude='*.cache' \
+            --ignore-failed-read \
             . || { echo "Chyba pri vytváraní archívu časti 4"; exit 1; }
           echo "Archív časti 4 úspešne vytvorený."
 
