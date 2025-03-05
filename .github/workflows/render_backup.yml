@@ -41,8 +41,9 @@ jobs:
 
       - name: Verify rclone config
         run: |
-          cat ~/.config/rclone/rclone.conf  # Overenie konfigurácie
-          ls -la ~/.config/rclone/  # Overenie, či súbor existuje
+          echo "Obsah rclone.conf:"
+          cat ~/.config/rclone/rclone.conf
+          echo "Koniec obsahu rclone.conf"
 
       - name: Check rclone config
         run: rclone config show  # Overenie, či rclone vidí konfiguráciu
