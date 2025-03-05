@@ -3,6 +3,7 @@ name: Backup GitHub Repo to Google Drive
 on:
   schedule:
     - cron: '0 3 * * *'  # Každý deň o 3:00 UTC
+  workflow_dispatch:  # Pridané pre manuálne spustenie
 
 jobs:
   backup:
@@ -12,13 +13,17 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Set up rclone
-        run: |
-          mkdir -p ~/.config/rclone
-          echo "$RCLONE_CONFIG" > ~/.config/rclone/rclone.conf
-
       - name: Archive repository
-        run: tar -czvf repo_backup.tar.gz .
+        run: tar -czvf repo_backup_$(date +%Y%m%d_%H%M%S).tar.gz .
 
-      - name: Upload to Google Drive
-        run: rclone copy repo_backup.tar.gz gdrive:/zaloha/
+      - name: Upload to Google Drive using rclone
+        uses: rclone/rclone-action@v1
+        with:
+          command: copy  # Príkaz na nahratie súboru
+          source: repo_backup_*.tar.gz  # Zdrojový súbor
+          destination: gdrive:/zaloha/  # Cieľové umiestnenie na Google Drive
+        env:
+          RCLONE_CONFIG: ${{ secrets.RCLONE_CONFIG }}  # Konfigurácia rclone
+
+      - name: Clean up
+        run: rm repo_backup_*.tar.gz  # Odstránenie lokálneho archívu po nahratí
