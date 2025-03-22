@@ -1,4 +1,4 @@
-name: Backup GitHub Repo to Google Drive
+name: Backup GitHub Repo to Google Drive (Rozdelené časti)
 
 on:
   schedule:
@@ -12,12 +12,6 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-
-      - name: Archive repository
-        run: |
-          echo "Vytváram archív repozitára..."
-          tar -czvf repo_backup_$(date +%Y%m%d_%H%M%S).tar.gz . || { echo "Chyba pri vytváraní archívu"; exit 1; }
-          echo "Archív úspešne vytvorený."
 
       - name: Install rclone
         run: |
@@ -54,14 +48,82 @@ jobs:
           echo "Vytváram priečinok na Google Drive..."
           rclone mkdir gdrive:zaloha || { echo "Chyba pri vytváraní priečinka"; exit 1; }
 
-      - name: Upload to Google Drive
+      - name: Archive and upload part 1 (templates, static, media)
         run: |
-          echo "Nahrávam archív na Google Drive..."
-          rclone copy repo_backup_*.tar.gz gdrive:zaloha/ || { echo "Chyba pri nahrávaní"; exit 1; }
-          echo "Archív úspešne nahraný."
+          echo "Vytváram archív časti 1 (templates, static, media)..."
+          tar -czvf repo_backup_part1_$(date +%Y%m%d_%H%M%S).tar.gz \
+            --exclude='.git' \
+            --exclude='__pycache__' \
+            --exclude='node_modules' \
+            --exclude='venv' \
+            ./templates ./static ./media || { echo "Chyba pri vytváraní archívu časti 1"; exit 1; }
+          echo "Archív časti 1 úspešne vytvorený."
 
-      - name: Clean up
+          echo "Nahrávam archív časti 1 na Google Drive..."
+          rclone copy repo_backup_part1_*.tar.gz gdrive:zaloha/ || { echo "Chyba pri nahrávaní časti 1"; exit 1; }
+          echo "Archív časti 1 úspešne nahraný."
+
+          echo "Čistím lokálne súbory časti 1..."
+          rm repo_backup_part1_*.tar.gz || { echo "Chyba pri odstraňovaní súborov časti 1"; exit 1; }
+          echo "Čistenie časti 1 dokončené."
+
+      - name: Archive and upload part 2 (Python files)
         run: |
-          echo "Čistím lokálne súbory..."
-          rm repo_backup_*.tar.gz || { echo "Chyba pri odstraňovaní súborov"; exit 1; }
-          echo "Čistenie dokončené."
+          echo "Vytváram archív časti 2 (Python súbory)..."
+          find . -name "*.py" -not -path "./.git/*" -not -path "./__pycache__/*" -not -path "./node_modules/*" -not -path "./venv/*" | tar -czvf repo_backup_part2_$(date +%Y%m%d_%H%M%S).tar.gz -T - || { echo "Chyba pri vytváraní archívu časti 2"; exit 1; }
+          echo "Archív časti 2 úspešne vytvorený."
+
+          echo "Nahrávam archív časti 2 na Google Drive..."
+          rclone copy repo_backup_part2_*.tar.gz gdrive:zaloha/ || { echo "Chyba pri nahrávaní časti 2"; exit 1; }
+          echo "Archív časti 2 úspešne nahraný."
+
+          echo "Čistím lokálne súbory časti 2..."
+          rm repo_backup_part2_*.tar.gz || { echo "Chyba pri odstraňovaní súborov časti 2"; exit 1; }
+          echo "Čistenie časti 2 dokončené."
+
+      - name: Archive and upload part 3 (staticfiles)
+        run: |
+          echo "Vytváram archív časti 3 (staticfiles)..."
+          tar -czvf repo_backup_part3_$(date +%Y%m%d_%H%M%S).tar.gz \
+            --exclude='.git' \
+            --exclude='__pycache__' \
+            --exclude='node_modules' \
+            --exclude='venv' \
+            ./staticfiles || { echo "Chyba pri vytváraní archívu časti 3"; exit 1; }
+          echo "Archív časti 3 úspešne vytvorený."
+
+          echo "Nahrávam archív časti 3 na Google Drive..."
+          rclone copy repo_backup_part3_*.tar.gz gdrive:zaloha/ || { echo "Chyba pri nahrávaní časti 3"; exit 1; }
+          echo "Archív časti 3 úspešne nahraný."
+
+          echo "Čistím lokálne súbory časti 3..."
+          rm repo_backup_part3_*.tar.gz || { echo "Chyba pri odstraňovaní súborov časti 3"; exit 1; }
+          echo "Čistenie časti 3 dokončené."
+
+      - name: Archive and upload part 4 (zvyšné súbory)
+        run: |
+          echo "Vytváram archív časti 4 (zvyšné súbory)..."
+          tar -czvf repo_backup_part4_$(date +%Y%m%d_%H%M%S).tar.gz \
+            --exclude='.git' \
+            --exclude='__pycache__' \
+            --exclude='node_modules' \
+            --exclude='venv' \
+            --exclude='./templates/*' \
+            --exclude='./static/*' \
+            --exclude='./media/*' \
+            --exclude='./staticfiles/*' \
+            --exclude='*.py' \
+            --exclude='*.log' \
+            --exclude='*.tmp' \
+            --exclude='*.cache' \
+            --ignore-failed-read \
+            . || { echo "Chyba pri vytváraní archívu časti 4"; exit 1; }
+          echo "Archív časti 4 úspešne vytvorený."
+
+          echo "Nahrávam archív časti 4 na Google Drive..."
+          rclone copy repo_backup_part4_*.tar.gz gdrive:zaloha/ || { echo "Chyba pri nahrávaní časti 4"; exit 1; }
+          echo "Archív časti 4 úspešne nahraný."
+
+          echo "Čistím lokálne súbory časti 4..."
+          rm repo_backup_part4_*.tar.gz || { echo "Chyba pri odstraňovaní súborov časti 4"; exit 1; }
+          echo "Čistenie časti 4 dokončené."
