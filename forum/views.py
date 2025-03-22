@@ -42,7 +42,7 @@ def addInForum(request):
             forum_instance.save()
 
             for user in User.objects.exclude(id=request.user.id):
-                create_notification(user, "Bolo vytvorené nové diskusné fórum.", url=reverse('forum'))
+                create_notification(user, "📝 Bolo vytvorené nové diskusné fórum.", url=reverse('forum'))
 
             return redirect('forum')  # Použitie názvu URL namiesto hardcoded stringu
 
@@ -63,7 +63,7 @@ def addInDiscussion(request, forum_id):
             discussion.save()
 
             for user in User.objects.exclude(id=request.user.id):
-                create_notification(user, "Bol pridaný nový komentár.", url=reverse('forum'))
+                create_notification(user, "📝 Bol pridaný nový komentár.", url=reverse('forum'))
 
             return redirect('forum')
 
