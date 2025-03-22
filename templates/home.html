@@ -111,13 +111,13 @@
             {% for notification in notifications %}  <!-- Pre každú notifikáciu. -->
                 <li class="notification-item">
                     {% if notification.url %}  <!-- Ak má notifikácia URL. -->
-                        <span class="notification-message">{{ notification.message|safe }} 
-                        <a href="{{ notification.url }}" class="go-to-link">Pozrieť</a></span>  <!-- Zobrazenie správy s odkazom. -->
+                        <span class="notification-message">{{ notification.message|safe }}  <!-- Použitie |safe -->
+                        <a href="{{ notification.url }}" class="go-to-link">Pozrieť</a></span>
                     {% else %}
-                        <span class="notification-message">{{ notification.message|safe }}</span>  <!-- Zobrazenie správy bez odkazu. -->
+                        <span class="notification-message">{{ notification.message|safe }}</span>  <!-- Použitie |safe -->
                     {% endif %}
-                    <span class="timestamp">({{ notification.timestamp|date:"d.m.Y H:i"  }})</span>  <!-- Zobrazenie času notifikácie. -->
-                    <a href="{% url 'mark_as_read' notification.id %}" class="mark-read-link">Označiť ako prečítané</a>  <!-- Odkaz na označenie notifikácie ako prečítanej. -->
+                    <span class="timestamp">({{ notification.timestamp|date:"d.m.Y H:i" }})</span>
+                    <a href="{% url 'mark_as_read' notification.id %}" class="mark-read-link">Označiť ako prečítané</a>
                 </li>
             {% empty %}
                 <li class="no-notifications">Žiadne nové upozornenia</li>  <!-- Ak nie sú žiadne notifikácie. -->
