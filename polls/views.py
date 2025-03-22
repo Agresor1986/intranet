@@ -10,10 +10,15 @@ from django.utils.decorators import method_decorator
 from django.urls import reverse
 import threading
 import time
+import bleach
+from django.utils.safestring import mark_safe
 
 def create_notification(user, message, url=None):
-    if not Notification.objects.filter(user=user, message=message, url=url).exists():
-        Notification.objects.create(user=user, message=message, url=url)
+    allowed_tags = ['strong']
+    clean_message = bleach.clean(message, tags=allowed_tags, strip=True)
+    safe_message = mark_safe(clean_message)
+    if not Notification.objects.filter(user=user, message=safe_message, url=url).exists():
+        Notification.objects.create(user=user, message=safe_message, url=url)
 
 def check_and_send_notifications():
     while True:
@@ -26,7 +31,7 @@ def check_and_send_notifications():
                 for user in users:
                     create_notification(
                         user,
-                        f'Hlasovanie v ankete <strong>"{poll_name}"</strong> bolo ukončené.',
+                        f'📊 Hlasovanie v ankete <strong>"{poll.name}"</strong> bolo ukončené.',
                         url=reverse('PollApp:poll', args=[poll.id])
                     )
                 poll.notified_closed = True
@@ -35,15 +40,15 @@ def check_and_send_notifications():
             if poll.is_active() and poll.end_date and (poll.end_date - now).total_seconds() <= 300:
                 users = User.objects.all()
                 for user in users:
+                    # Skontroluj, či už existuje notifikácia pre túto anketu a používateľa
                     if not Notification.objects.filter(
                         user=user,
-                        message=f'Hlasovanie v ankete <strong>"{poll_name}"</strong> skončí o 5 minút.',
-                        url=reverse('PollApp:poll', args=[poll.id]),
-                        timestamp__gte=now - timedelta(minutes=5)
+                        message=f'📊 Hlasovanie v ankete <strong>"{poll.name}"</strong> skončí o 5 minút.',
+                        url=reverse('PollApp:poll', args=[poll.id])
                     ).exists():
                         create_notification(
                             user,
-                            f'Hlasovanie v ankete <strong>"{poll_name}"</strong> skončí o 5 minút.',
+                            f'📊 Hlasovanie v ankete <strong>"{poll.name}"</strong> skončí o 5 minút.',
                             url=reverse('PollApp:poll', args=[poll.id])
                         )
         
@@ -73,7 +78,12 @@ class PollView(View):
 
         if request.user.is_authenticated:
             user_vote = Vote.objects.filter(poll=poll, user=request.user).first()
-            Notification.objects.filter(user=request.user, url=reverse('PollApp:poll', args=[poll.id])).delete()
+            # Odstráni iba notifikácie o ukončení hlasovania, nie o 5 minútach
+            Notification.objects.filter(
+                user=request.user,
+                url=reverse('PollApp:poll', args=[poll.id]),
+                message__icontains="bolo ukončené"  # Odstráni iba notifikácie o ukončení
+            ).delete()
 
         poll_results = [[choice.name, choice.votes.count()] for choice in poll.choices.all()]
 
@@ -190,7 +200,7 @@ class CreatePollView(View):
         for user in users:
             create_notification(
                 user,
-                f'Bola vytvorená nová anketa: <strong>"{poll_name}"</strong>',
+                f'📊 Bola vytvorená nová anketa: <strong>"{poll_name}"</strong>',
                 url=reverse('PollApp:poll', args=[poll.id])
             )
 
