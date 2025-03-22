@@ -36,7 +36,7 @@ def chat(request):
         Message.objects.create(user=request.user, content=content, file=file)
 
         for user in users:
-            create_notification(user=user, message=f"{request.user.username} poslal správu do skupinového chatu.", url="/chat/")
+            create_notification(user=user, message=f"💬 <strong>{request.user.username}</strong> poslal správu do skupinového chatu.", url="/chat/")
 
         return redirect("chat")
 
@@ -68,7 +68,7 @@ def private_chat(request, username):
 
         PrivateMessage.objects.create(conversation=conversation, sender=request.user, content=content, file=file)
 
-        create_notification(user=user2, message=f"{request.user.username} Vám poslal správu.", url=f"/chat/private/{request.user.username}/")
+        create_notification(user=user2, message=f"💬 <strong>{request.user.username}</strong> Vám poslal správu.", url=f"/chat/private/{request.user.username}/")
 
         return redirect("private_chat", username=username)
 
