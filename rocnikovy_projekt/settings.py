@@ -168,6 +168,8 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")  # Heslo aplikácie, ktoré ste vygenerovali
 DEFAULT_FROM_EMAIL = 'stredak.michael@gmail.com'
 
+BASE_URL = "https://www.firma-intranet.great-site.net"
+
 SESSION_COOKIE_AGE = 900  # 15 minutes
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Zatvorenie prehliadača odhlási užívateľa
 
