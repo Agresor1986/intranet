@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse  # Pridaj import
+from django.urls import reverse
 from .models import Forum, Discussion
 from .forms import CreateInForum, CreateInDiscussion
 from notifications.models import Notification
@@ -27,7 +27,7 @@ def forums(request):
             'show_all': show_all_forum_id and str(forum_instance.id) == show_all_forum_id
         })
 
-    Notification.objects.filter(user=request.user, url=reverse('forum')).delete()  # Použitie reverse()
+    Notification.objects.filter(user=request.user, url=reverse('forum')).delete()
 
     return render(request, 'forum.html', {'forum_data': forum_data, 'count': count})
 
@@ -42,9 +42,13 @@ def addInForum(request):
             forum_instance.save()
 
             for user in User.objects.exclude(id=request.user.id):
-                create_notification(user, "📝 Bolo vytvorené nové diskusné fórum.", url=reverse('forum'))
+                create_notification(
+                    user, 
+                    f'📝 Bolo vytvorené nové diskusné fórum: <strong>"{forum_instance.topic}"</strong>', 
+                    url=reverse('forum')
+                )
 
-            return redirect('forum')  # Použitie názvu URL namiesto hardcoded stringu
+            return redirect('forum')
 
     return render(request, 'addInForum.html', {'form': form})
 
@@ -63,7 +67,11 @@ def addInDiscussion(request, forum_id):
             discussion.save()
 
             for user in User.objects.exclude(id=request.user.id):
-                create_notification(user, "📝 Bol pridaný nový komentár.", url=reverse('forum'))
+                create_notification(
+                    user, 
+                    f'📝 Bol pridaný nový komentár do fóra: <strong>"{forum_instance.topic}"</strong>', 
+                    url=reverse('forum')
+                )
 
             return redirect('forum')
 
