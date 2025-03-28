@@ -15,9 +15,6 @@ def login_failed(sender, credentials, request, **kwargs):
     failed_attempts += 1
     request.session["failed_attempts"] = failed_attempts
 
-    # Pridanie chybovej správy pre používateľa
-    messages.error(request, "Nesprávne používateľské meno alebo heslo.")
-
     # Ak používateľ prekročí 3 neúspešné pokusy
     if failed_attempts >= 3:
         messages.error(request, "Veľa nesprávnych pokusov. Admin bol kontaktovaný.")
@@ -33,3 +30,6 @@ def login_failed(sender, credentials, request, **kwargs):
 
         # Resetovanie pokusov po odoslaní e-mailu
         request.session["failed_attempts"] = 0
+    else:
+        # Pridanie chybovej správy pre používateľa iba ak nie je to tretí pokus
+        messages.error(request, "Nesprávne používateľské meno alebo heslo.")
