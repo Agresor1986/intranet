@@ -5,10 +5,12 @@
 body {
     background-color: #7A9BAF;
     color: #2C3E50;
+    margin: 0;
+    padding: 0;
 }
 a {
-    color: white ;
-    text-decoration: none ;
+    color: white;
+    text-decoration: none;
 }
 
 ul, .calendar td ul, .calendar td li {
@@ -25,13 +27,15 @@ ul, .calendar td ul, .calendar td li {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 96.9%;
-    height:94.3vh;
+    width: 100%;
+    min-height: 100vh;
+    box-sizing: border-box;
 }
 
 .calendar {
     position: relative;
     width: 100%;
+    max-width: 1200px;
     font-size: 12px;
     background-color: white;
     border: 10px solid #ddd;
@@ -39,7 +43,7 @@ ul, .calendar td ul, .calendar td li {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     border-collapse: collapse;
     padding: 0;
-    height:100%;
+    table-layout: fixed;
 }
 
 .calendar tr, .calendar td {
@@ -56,12 +60,12 @@ ul, .calendar td ul, .calendar td li {
 }
 
 .calendar td {
-    width: 100px;
-    height: 90px;
+    width: 14.28%; /* 100% / 7 days */
+    height: 100px;
     padding: 5px;
     text-align: left;
     position: relative;
-    min-height: 80px;
+    box-sizing: border-box;
 }
 
 .calendar td .date {
@@ -109,9 +113,11 @@ ul, .calendar td ul, .calendar td li {
 
 .clearfix {
     width: 100%;
+    max-width: 1200px;
     display: flex;
     justify-content: space-between;
     margin-bottom: 10px;
+    flex-wrap: wrap;
 }
 
 .left {
@@ -126,6 +132,62 @@ ul, .calendar td ul, .calendar td li {
 
 .event {
     margin-right: 10px; 
+}
+
+/* Responzívne štýly */
+@media (max-width: 768px) {
+    .calendar td {
+        height: 80px;
+        font-size: 11px;
+    }
+    
+    .calendar th {
+        font-size: 14px;
+        padding: 5px;
+    }
+    
+    .calendar td .date {
+        font-size: 12px;
+    }
+    
+    .calendar td .event {
+        font-size: 10px;
+        top: 15px;
+    }
+    
+    .btn {
+        padding: 10px;
+        font-size: 14px;
+        margin: 3px;
+    }
+    
+    .clearfix {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .left, .right, .event {
+        margin: 5px 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .calendar td {
+        height: 60px;
+        font-size: 10px;
+    }
+    
+    .calendar th {
+        font-size: 12px;
+    }
+    
+    .calendar td .date {
+        font-size: 10px;
+    }
+    
+    .calendar-container {
+        padding: 10px;
+    }
 }
 </style>
 {% if request.user.is_authenticated %}
