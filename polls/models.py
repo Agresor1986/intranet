@@ -33,8 +33,8 @@ class Poll(models.Model):
         return timezone.now() < self.end_date
 
     class Meta:
-        verbose_name = "hlasovanie"
-        verbose_name_plural = "hlasovania"
+        verbose_name = "Anketa"
+        verbose_name_plural = "Ankety"
 
 class Vote(models.Model):
     poll = models.ForeignKey(Poll, on_delete=models.SET_NULL, related_name="votes", null=True, blank=True, verbose_name="hlasovanie")
