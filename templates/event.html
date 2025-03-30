@@ -126,7 +126,7 @@
             {% endif %}
             <!-- Tlačidlo na odoslanie formulára (len ak formulár nie je v režime "len na čítanie") -->
             {% if not view_only %}
-                <input type="submit" class="btn btn-success" value="Vytvoriť" id="submitBtn">
+                <input type="submit" class="btn btn-success" value="{% if form.instance.pk %}Upraviť{% else %}Vytvoriť{% endif %}" id="submitBtn">
             {% endif %}
         </form>
         <div class="button-container">
