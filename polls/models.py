@@ -20,7 +20,7 @@ class Poll(models.Model):
     description = models.TextField(verbose_name="popis")
     choices = models.ManyToManyField(Choice, related_name='related_polls', blank=True, verbose_name="možnosti")
     timestamp = models.DateTimeField(auto_now_add=True, verbose_name="čas vytvorenia")
-    end_date = models.DateTimeField(verbose_name="koniec hlasovania")  # Opravené: iba verbose_name
+    end_date = models.DateTimeField(verbose_name="koniec hlasovania")
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_polls', verbose_name="vytvoril")
     notified_closed = models.BooleanField(default=False, verbose_name="notifikácia uzavretá")
 
@@ -31,6 +31,9 @@ class Poll(models.Model):
         if timezone.is_naive(self.end_date):
             self.end_date = timezone.make_aware(self.end_date, timezone.get_current_timezone())
         return timezone.now() < self.end_date
+
+    def can_delete(self, user):
+        return user.is_superuser or user.groups.filter(name='manazer').exists() or user == self.created_by
 
     class Meta:
         verbose_name = "Anketa"

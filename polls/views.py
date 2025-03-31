@@ -3,7 +3,7 @@ from django.views import View
 from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta, datetime
-from .models import Poll, Choice, Vote  # Zmenené z forum.models na PollApp.models
+from .models import Poll, Choice, Vote
 from notifications.models import Notification
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -12,6 +12,7 @@ import threading
 import time
 import bleach
 from django.utils.safestring import mark_safe
+from django.contrib import messages
 
 def create_notification(user, message, url=None):
     allowed_tags = ['strong']
@@ -88,7 +89,8 @@ class PollView(View):
             "poll": poll,
             "user_vote": user_vote,
             "poll_results": poll_results,
-            "is_active": poll.is_active()
+            "is_active": poll.is_active(),
+            "can_delete": poll.can_delete(request.user) if request.user.is_authenticated else False
         })
 
     def post(self, request, poll_id):
@@ -99,7 +101,8 @@ class PollView(View):
             return render(request, "poll.html", {
                 "poll": poll,
                 "error_message": "Hlasovanie bolo ukončené.",
-                "poll_results": poll_results
+                "poll_results": poll_results,
+                "can_delete": poll.can_delete(request.user)
             })
 
         choice_id = request.POST.get('choice_id')
@@ -110,13 +113,15 @@ class PollView(View):
                 "poll": poll,
                 "error_message": "Musíte vybrať možnosť, aby ste mohli hlasovať.",
                 "poll_results": poll_results,
-                "is_active": poll.is_active()
+                "is_active": poll.is_active(),
+                "can_delete": poll.can_delete(request.user)
             })
 
         if not request.user.is_authenticated:
             return render(request, "poll.html", {
                 "poll": poll,
-                "error_message": "Musíte byť prihlásený, aby ste mohli hlasovať."
+                "error_message": "Musíte byť prihlásený, aby ste mohli hlasovať.",
+                "can_delete": False
             })
 
         choice = get_object_or_404(Choice, id=choice_id)
@@ -136,20 +141,21 @@ class PollView(View):
             "poll": poll,
             "success_message": success_message,
             "poll_results": poll_results,
-            "is_active": poll.is_active()
+            "is_active": poll.is_active(),
+            "can_delete": poll.can_delete(request.user)
         })
 
 @method_decorator(login_required, name='dispatch')
 class CreatePollView(View):
     def get(self, request):
         if not request.user.is_superuser and not request.user.groups.filter(name='manazer').exists():
-            return render(request, "polls.html", {"error_message": "Nemáte oprávnenie na vytváranie ankiet."})
+            return redirect('PollApp:polls')
         
         return render(request, "create_polls.html")
 
     def post(self, request):
         if not request.user.is_superuser and not request.user.groups.filter(name='manazer').exists():
-            return render(request, "polls.html", {"error_message": "Nemáte oprávnenie na vytváranie ankiet."})
+            return redirect('PollApp:polls')
 
         poll_name = request.POST.get("poll_name")
         poll_description = request.POST.get("poll_description")
@@ -196,7 +202,16 @@ class CreatePollView(View):
                 url=reverse('PollApp:poll', args=[poll.id])
             )
 
-        return render(request, "create_polls.html", {
-            "poll": poll,
-            "success_message": "Anketa bola vytvorená!",
-        })
+        return redirect('PollApp:polls')
+
+@login_required
+def delete_poll(request, poll_id):
+    poll = get_object_or_404(Poll, id=poll_id)
+    
+    if not poll.can_delete(request.user):
+        messages.error(request, "Nemáte oprávnenie vymazať túto anketu.")
+        return redirect('PollApp:poll', poll_id=poll_id)
+
+    poll.delete()
+    messages.success(request, "Anketa bola úspešne vymazaná.")
+    return redirect('PollApp:polls')
