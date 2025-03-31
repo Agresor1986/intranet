@@ -6,11 +6,11 @@
         font-family: 'Lato', sans-serif;
         color: #2C3E50;
         display: flex;
+        flex-direction: column;
         justify-content: center;
         align-items: center;
-        height: 100vh; /* Výška celej obrazovky */
+        height: 100vh;
     }
-
     .plls  {   
         border: 4px solid #7A9BAF;
         background-color: white; 
@@ -22,6 +22,7 @@
         padding-right:0px;
         padding-left:25px;
         padding-bottom:25px;
+        margin-top: 5px;
     }
     .btn {
         transition: background-color 0.3s ease, transform 0.3s ease;
@@ -83,60 +84,66 @@
     .form-control {
         width: 90%;
     }
-    .alert-success {
-        text-align:center;
-        margin-top: 20px;
+    .error-message {
+        color: red;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 5px;
+        width: 370px;
+        font-size:18px;
     }
-    .error-message{
-        text-align:center;
-    }
-    .success-message{
-        text-align:center;
-        margin-top:15px;
+    .success-message {
+        color: green;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 5px;
+        width: 370px;
     }
 </style>
 {% if request.user.is_authenticated %}
     <div class="polls">
-    <div class="plls">
-        <h2 style="text-align:center; margin-left:-5px">Pridať anketu</h2>
-    
-        <form method="POST">
-        {% csrf_token %}
-        <div class="form-group">
-            <label for="poll_name">Názov</label>
-            <input type="text" id="poll_name" name="poll_name" class="form-control" required>
-        </div>
-        <div class="form-group">
-            <label for="poll_description">Popis</label>
-            <textarea id="poll_description" name="poll_description" class="form-control" required></textarea>
-        </div>
-        <div class="form-group">
-            <label for="end_date">Dátum ukončenia hlasovania</label>
-            <input type="datetime-local" id="end_date" name="end_date" class="form-control" required>
-        </div>
-      
-        <div id="choices_container" class="form-group">
-            <div class="choice">
-                <label for="choices_1">Možnosť 1</label>
-                <input type="text" id="choice_1" name="choices" class="form-control" required>
-            </div>
-            <div class="choice">
-                <label for="choices_2">Možnosť 2</label>
-                <input type="text" id="choice_2" name="choices" class="form-control" required>
-            </div>
-        </div>
-      
-        <div><button type="button" id="add_choice_btn" class="btn btn-secondary">Pridať ďalšiu možnosť</button></div>
-        <a href="{% url 'PollApp:polls' %}" class="btn btn-exit">Naspäť</a>
-        <button type="submit" class="btn btn-primary">Vytvoriť</button>
-        </form>
+        <!-- Zobrazenie chybových správ tesne nad formulárom -->
         {% if error_message %}
-            <div class="error-message">{{ error_message }}</div>
+            <p class="error-message">{{ error_message }}</p>
         {% endif %}
         {% if success_message %}
-            <div class="success-message">{{ success_message }}</div>
+            <p class="success-message">{{ success_message }}</p>
         {% endif %}
-    </div>
+        
+        <div class="plls">
+            <h2 style="text-align:center; margin-left:-5px">Pridať anketu</h2>
+            
+            <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="poll_name">Názov</label>
+                <input type="text" id="poll_name" name="poll_name" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="poll_description">Popis</label>
+                <textarea id="poll_description" name="poll_description" class="form-control" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="end_date">Dátum ukončenia hlasovania</label>
+                <input type="datetime-local" id="end_date" name="end_date" class="form-control" required>
+            </div>
+          
+            <div id="choices_container" class="form-group">
+                <div class="choice">
+                    <label for="choices_1">Možnosť 1</label>
+                    <input type="text" id="choice_1" name="choices" class="form-control" required>
+                </div>
+                <div class="choice">
+                    <label for="choices_2">Možnosť 2</label>
+                    <input type="text" id="choice_2" name="choices" class="form-control" required>
+                </div>
+            </div>
+          
+            <div><button type="button" id="add_choice_btn" class="btn btn-secondary">Pridať ďalšiu možnosť</button></div>
+            <a href="{% url 'PollApp:polls' %}" class="btn btn-exit">Naspäť</a>
+            <button type="submit" class="btn btn-primary">Vytvoriť</button>
+            </form>
+        </div>
     </div>
 {% else %}
     <p>Please log in.</p>
@@ -151,12 +158,12 @@
       newChoiceDiv.id = "choice_div_" + choiceCount;
   
       const newChoiceLabel = document.createElement("label");
-      newChoiceLabel.setAttribute("for", "choice_" + choiceCount);  // Správne prepojenie for a id
+      newChoiceLabel.setAttribute("for", "choice_" + choiceCount);
       newChoiceLabel.innerText = "Možnosť " + choiceCount;
   
       const newChoiceInput = document.createElement("input");
       newChoiceInput.setAttribute("type", "text");
-      newChoiceInput.setAttribute("id", "choice_" + choiceCount);  // ID odpovede
+      newChoiceInput.setAttribute("id", "choice_" + choiceCount);
       newChoiceInput.setAttribute("name", "choices");
       newChoiceInput.setAttribute("class", "form-control");
   
@@ -165,6 +172,6 @@
   
       document.getElementById("choices_container").appendChild(newChoiceDiv);
     });
-  </script>
+</script>
   
 {% endblock %}
