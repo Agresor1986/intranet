@@ -11,7 +11,9 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
+      padding: 20px;
+      box-sizing: border-box;
     }
 
     .pll {
@@ -20,7 +22,8 @@
         padding: 20px; 
         border-radius: 8px; 
         box-shadow: 0 0 10px rgba(0,0,0,0.1); 
-        width: 50%;
+        width: 100%;
+        max-width: 800px;
     }
     .btn {
       transition: background-color 0.3s ease, transform 0.3s ease;
@@ -76,6 +79,23 @@
     .btn-back {
         order: 1;
     }
+    .chart-wrapper {
+        width: 100%;
+        margin: 20px 0;
+    }
+    .chart-container {
+        width: 100%;
+        height: 250px;
+    }
+    @media (max-width: 768px) {
+        .pll {
+            width: 95%;
+            padding: 15px;
+        }
+        .chart-container {
+            height: 200px;
+        }
+    }
 </style>
 
 {% if request.user.is_authenticated %}
@@ -83,7 +103,7 @@
     <div class="pll">
       <h2>{{ poll.name }}</h2>
       <i>
-        <h6>{{ poll.description }}</h6>
+        <h4>{{ poll.description }}</h4>
       </i>
       <hr class="my-4">
 
@@ -151,7 +171,9 @@
       <h4>Výsledky:</h4>
       <script type="text/javascript" src="{% static 'js/loader.js' %}"></script>
       {% if poll_results %}
-        <div id="piechart" style="width: 100%; height: 250px;">
+        <div class="chart-wrapper">
+          <div id="piechart" class="chart-container"></div>
+        </div>
         <script type="text/javascript">
           google.charts.load('current', { 'packages': ['corechart'] });
           google.charts.setOnLoadCallback(drawChart);
@@ -160,18 +182,43 @@
               var pollResults = {{ poll_results|safe }};
               pollResults.unshift(["Možnosť", "Počet hlasov"]);
               var data = google.visualization.arrayToDataTable(pollResults);
+              
               var options = { 
-                  width: '100%', 
-                  height: 250,
-                  legend: { position: "bottom" },
+                  width: '100%',
+                  height: '100%',
+                  legend: { 
+                      position: 'bottom',
+                      alignment: 'center',
+                      textStyle: {
+                          fontSize: 12
+                      }
+                  },
                   pieSliceText: 'value',
-                  chartArea: { width: '90%', height: '80%' }
+                  chartArea: {
+                      left: 0,
+                      right: 0,
+                      top: 10,
+                      bottom: 40,
+                      width: '100%',
+                      height: '80%'
+                  },
+                  pieHole: 0,  <!-- Odstránená diera v strede -->
+                  backgroundColor: 'transparent',
+                  tooltip: {
+                      textStyle: {
+                          fontSize: 12
+                      }
+                  }
               };
+              
               var chart = new google.visualization.PieChart(document.getElementById('piechart'));
               chart.draw(data, options);
+              
+              window.addEventListener('resize', function() {
+                  chart.draw(data, options);
+              });
           }
         </script>
-        </div>
       {% else %}
         <p>Zatiaľ neboli odovzdané žiadne hlasy.</p>
       {% endif %}
