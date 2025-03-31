@@ -103,7 +103,7 @@ ASGI_APPLICATION = 'rocnikovy_projekt.asgi.application'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
-    'default': dj_database_url.config(default='postgresql://intranet_databaza_r0nq_user:f5QYUoydyFf1lFaiIH8oMwGsQTVOmDMa@dpg-cv1glnl2ng1s738d0h4g-a.frankfurt-postgres.render.com/intranet_databaza_r0nq')
+    'default': dj_database_url.config(default='postgresql://intranet_databaza_6b7n_user:lR3BddEMwMIObib2GrbwdlX4qqfg1UJi@dpg-cvlafg3ipnbc73dhl7e0-a.frankfurt-postgres.render.com/intranet_databaza_6b7n')
 }
 
 
