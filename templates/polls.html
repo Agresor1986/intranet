@@ -96,6 +96,11 @@
         font-style: italic;
         margin-top: 10px;
     }
+    .timestamp-container {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+    }
 </style>
 
 {% if request.user.is_authenticated %}
@@ -122,7 +127,10 @@
                             {% else %}
                                 <p class="under">Hlasovanie ukončené</p>
                             {% endif %}
-                            <p class="under">Vytvorené: {{ poll.timestamp|date:"d.m.Y H:i" }}</p>
+                            <div class="timestamp-container">
+                                <p class="under">Vytvorené: {{ poll.timestamp|date:"d.m.Y H:i" }}</p>
+                                <p class="under">Hlasovanie do: {{ poll.end_date|date:"d.m.Y H:i" }}</p>
+                            </div>
                         </div>
                     </div>
                 {% endfor %}
