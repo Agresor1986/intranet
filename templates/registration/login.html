@@ -1,37 +1,24 @@
-{% load static %}  <!-- Načítanie statických súborov, ako sú obrázky, CSS a JS -->
+{% load static %}  
 
-<!DOCTYPE html>  <!-- Definovanie typu dokumentu ako HTML5 -->
-<html lang="sk">  <!-- Začiatok HTML dokumentu s nastaveným jazykom na slovenčinu -->
+<!DOCTYPE html>  
+<html lang="sk">  
 
 <head>
-    <!-- Načítanie písma Lato zo služby Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Nastavenie faviconu (ikony pre stránku) z adresára statických súborov -->
     <link rel="icon" type="image/x-icon" href="{% static 'favicon.png' %}">
-    
-    <!-- Nastavenie kódovania znakov na UTF-8 -->
+
     <meta charset="UTF-8">
-    
-    <!-- Definovanie prispôsobenia stránky pre mobilné zariadenia -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://trusted.cdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:;">
 
-
-    <!-- Názov stránky (titulok), ktorý sa zobrazuje v prehliadači -->
     <title>Prihlásenie</title>
 
     <style>
-        /* CSS štýly pre stránku */
-
-        /* Nastavenie pozadia a základného vzhľadu pre celé telo stránky */
         body {
             background-color: #BCCCDC;
             margin: 0;
             font-family: 'Lato', sans-serif;
         }
-
-        /* Nastavenie stredovej kontajnerovej štruktúry */
         .centered-container {
             display: flex;
             flex-direction: column;
@@ -39,14 +26,10 @@
             align-items: center;
             height: 100vh;
         }
-
-        /* Logo zobrazené v hornej časti s maximálnou šírkou 120px */
         .logo img {
             max-width: 120px;
             margin-bottom: 20px;
         }
-
-        /* Formulár prihlásenia so štýlmi pre pozadie, zaoblené rohy a tieňovanie */
         .login-form-container {
             font-size: 18px;
             background-color: #FFFFFF;
@@ -57,14 +40,10 @@
             max-width: 350px;
             text-align: center;
         }
-
-        /* Štýl pre nadpis v login formulári */
         .login-form-container h2 {
             margin-bottom: 20px;
             color: #2C3E50;
         }
-
-        /* Nastavenie vzhľadu pre vstupy vo formulári (textové polia) */
         .form-input {
             width: 100%;
             padding: 12px;
@@ -73,8 +52,6 @@
             border: 1px solid #BDC3C7;
             box-sizing: border-box;
         }
-
-        /* Štýl pre tlačidlo prihlásenia */
         .btn-submit {
             font-family: 'Lato', sans-serif;
             background-color: #6096B4;
@@ -87,21 +64,15 @@
             cursor: pointer;
             transition: background-color 0.3s ease, transform 0.3s ease;
         }
-
-        /* Efekt pri hoveri nad tlačidlom (zmena farby a zväčšenie tlačidla) */
         .btn-submit:hover {
             background-color: #93BFCF;
             transform: scale(1.05);
         }
-
-        /* Rozvrhnutie objektov vo formulári (flexbox s medzerami medzi prvkami) */
         .form-objects {
             display: flex;
             flex-direction: column;
             gap: 15px;
         }
-
-        /* Nastavenie horného okraja nadpisu */
         h2 {
             margin-top:0px;
         }
@@ -115,29 +86,23 @@
 </head>
 
 <body>
-    <!-- Hlavný kontajner, ktorý je centrovaný vertikálne aj horizontálne -->
     <div class="centered-container">
-        <!-- Logo v hornej časti formulára prihlásenia -->
         <div class="logo">
             <img src="{% static 'images/logo-firmy.png' %}" alt="Logo">
         </div>
-        <!-- Formulár prihlásenia -->
         <div class="login-form-container">
-            <h2>Vitaje späť!</h2>  <!-- Pozdrav pre užívateľa -->
+            <h2>Vitaje späť!</h2>  
             <form method="post" class="form-objects">
-                <!-- Ochranný token pre CSRF ochranu formulárov v Django -->
                 {% csrf_token %}
-                <!-- Poľe pre užívateľské meno -->
                 <div>
                     <label for="{{ form.username.id_for_label }}">Užívateľské meno:</label>
-                    {{ form.username }}  <!-- Zobrazenie poľa pre užívateľské meno -->
+                    {{ form.username }}  
                 </div>
-                <!-- Poľe pre heslo -->
+                
                 <div>
                     <label for="{{ form.password.id_for_label }}">Prihlasovacie heslo:</label>
-                    {{ form.password }}  <!-- Zobrazenie poľa pre heslo -->
+                    {{ form.password }}  >
                 </div>
-                <!-- Tlačidlo na odoslanie formulára -->
                 <button type="submit" class="btn-submit"><strong>Prihlásiť sa</strong></button>
                 {% if messages %}
                     {% for message in messages %}
