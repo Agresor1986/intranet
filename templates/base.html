@@ -150,17 +150,16 @@
             </form>
         </h2>
     </nav>
+    <div class="content-area">
+        {% block content %}
+        {% endblock %}
+    </div>
     {% else %}
     <div class="logging">
         <h2>Nie ste prihlásený</h2>
         <a href="{% url 'login' %}" class="nav-button">Prihlásiť sa</a>
     </div>
     {% endif %}
-
-    <div class="content-area">
-        {% block content %}
-        {% endblock %}
-    </div>
 
     <script>
         function updateDateTime() {
