@@ -7,7 +7,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 100vh; /* Výška celej obrazovky */
+        height: 100vh; 
     }
 
     .upload-container {
@@ -70,30 +70,25 @@
         background-color: #a0c8e0;
     }
     input[name="title"] {
-        width: 80%; /* Nastaví šírku na 100% rodičovského prvku */
+        width: 80%; 
     }   
 </style>
 
 <div class="upload-documents">
     <div class="upload-container">
-        <h1>Vložiť dokument</h1> <!-- Nadpis -->
-        <!-- Formulár na nahrávanie dokumentu -->
+        <h1>Vložiť dokument</h1> 
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %} 
             <div class="form-group">
-                <!-- Popis pre pole názvu -->
                 <label for="{{ form.title.id_for_label }}">Názov:</label> 
-                {{ form.title }}  <!-- Vykreslenie poľa pre napísanie názvu dokumentu -->
+                {{ form.title }}  
             </div>
             <div class="form-group">
-                <!-- Popis pre pole súboru -->
                 <label for="{{ form.file.id_for_label }}">Súbor:</label>  
-                {{ form.file }}  <!-- Vykreslenie poľa pre vloženie súboru -->
+                {{ form.file }}  
             </div>
             <div class="btn-container">
-                <!-- Tlačidlo na odoslanie formuláru a vloženie dokumentu -->
                 <button type="submit" class="btn">Vložiť</button>  
-                <!-- Odkaz na stránku so zoznamom dokumentov -->
                 <a href="{% url 'document_list' %}" class="btn">Naspäť</a>  
             </div>
         </form>
