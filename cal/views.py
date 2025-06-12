@@ -36,10 +36,10 @@ def send_email_notification(user, subject, message):
     send_mail(
         subject,
         message,
-        settings.EMAIL_HOST_USER,  # Odosielateľ (nastavený v settings.py)
-        [user.email],  # Príjemca
+        settings.EMAIL_HOST_USER,  
+        [user.email],  
         fail_silently=False,
-        html_message=message,  # Pridané pre podporu HTML v e-mailoch
+        html_message=message,  
     )
 
 def check_and_send_notifications():
@@ -48,15 +48,12 @@ def check_and_send_notifications():
         now_time = now()
 
         for event in events:
-            # Notifikácia v aplikácii: Keď dnes začína udalosť
             if event.start_time.date() == now_time.date() and not event.notification_sent_today:
                 users = User.objects.all() if event.is_global else [event.user]
                 for user in users:
-                    # Klasická notifikácia v aplikácii
                     message = f'📅 {"Vaša udalosť" if user == event.user else "Udalosť"} <strong>"{event.title}"</strong> dnes začína!'
                     create_notification(user, message, url=reverse('cal:event_edit', args=[event.id]))
 
-                # E-mailové upozornenie: Keď dnes začína udalosť (iba pre globálne udalosti)
                 if event.is_global:
                     for user in User.objects.all():
                         local_start_time = localtime(event.start_time).strftime("%H:%M")
@@ -69,19 +66,15 @@ def check_and_send_notifications():
                         '''
                         send_email_notification(user, email_subject, email_message)
 
-                # Označíme, že notifikácie boli odoslané
                 event.notification_sent_today = True
                 event.save()
 
-            # Notifikácia v aplikácii: Keď teraz začína udalosť
             if event.start_time <= now_time and not event.notification_sent_now:
                 users = User.objects.all() if event.is_global else [event.user]
                 for user in users:
-                    # Klasická notifikácia v aplikácii
                     message = f'📅 {"Vaša udalosť" if user == event.user else "Udalosť"} <strong>"{event.title}"</strong> teraz začína!'
                     create_notification(user, message, url=reverse('cal:event_edit', args=[event.id]))
 
-                # E-mailové upozornenie: Keď teraz začína udalosť (iba pre globálne udalosti)
                 if event.is_global:
                     for user in User.objects.all():
                         local_start_time = localtime(event.start_time).strftime("%H:%M")
@@ -94,11 +87,9 @@ def check_and_send_notifications():
                         '''
                         send_email_notification(user, email_subject, email_message)
 
-                # Označíme, že notifikácia bola odoslaná
                 event.notification_sent_now = True
                 event.save()
 
-            # E-mailové upozornenie: Keď o 5 minút začína udalosť (iba pre globálne udalosti)
             if event.start_time - now_time <= timedelta(minutes=5) and not event.notification_sent_5_min:
                 if event.is_global:
                     for user in User.objects.all():
@@ -112,11 +103,10 @@ def check_and_send_notifications():
                         '''
                         send_email_notification(user, email_subject, email_message)
 
-                    # Označíme, že e-mailová notifikácia bola odoslaná
                     event.notification_sent_5_min = True
                     event.save()
 
-        time.sleep(30)  # Kontrola každých 30 sekúnd
+        time.sleep(30)  
 
 def start_notification_checker():
     thread = threading.Thread(target=check_and_send_notifications)
@@ -163,10 +153,8 @@ def event(request, event_id=None):
     instance = get_object_or_404(Event, pk=event_id) if event_id else Event(user=request.user)
     view_only = instance.is_global and not request.user.is_staff
 
-    # Vytvoríme event_url predtým, ako ju použijeme
     event_url = reverse('cal:event_edit', kwargs={'event_id': instance.id}) if instance.id else None
 
-    # Odstránime notifikácie, ak event_id existuje
     if event_id:
         Notification.objects.filter(user=request.user, url=event_url).delete()
 
@@ -184,12 +172,9 @@ def event(request, event_id=None):
             event.user = request.user
             event.save()
 
-            # Aktualizujeme event_url po uložení eventu
             event_url = reverse('cal:event_edit', kwargs={'event_id': event.id})
 
-            # Notifikácia v aplikácii: Keď bola pridaná udalosť (iba pre ostatných používateľov, ak je globálna)
             if request.user.is_staff and event.is_global:
-                # Notifikácia pre všetkých používateľov okrem vytvárajúceho
                 for user in User.objects.exclude(id=request.user.id):
                     create_notification(
                         user,
@@ -199,7 +184,6 @@ def event(request, event_id=None):
                 event.notification_sent_created = True
                 event.save()
             elif not event.is_global:
-                # Osobné udalosti neposielajú notifikácie o vytvorení
                 event.notification_sent_created = True
                 event.save()
 
