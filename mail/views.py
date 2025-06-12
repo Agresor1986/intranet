@@ -3,18 +3,17 @@ from django.shortcuts import render
 from .models import SentEmail
 
 def send_mail_page(request):
-    result = None  # Výsledok operácie
+    result = None  
     if request.method == 'POST':
-        address = request.POST.get('address')  # Príjemca
-        message = request.POST.get('message')  # Správa
-        file = request.FILES.get('file')  # Súbor (ak je pripojený)
+        address = request.POST.get('address')  
+        message = request.POST.get('message') 
+        file = request.FILES.get('file')  
 
         if address and message:
             try:
-                user_email = request.user.email  # E-mail odosielateľa
-                user_name = request.user.username  # Meno používateľa
+                user_email = request.user.email 
+                user_name = request.user.username  
 
-                # Automaticky vygenerovaný predmet
                 subject = f"Od: ({user_email})"
 
                 email = EmailMessage(
@@ -35,7 +34,7 @@ def send_mail_page(request):
                     recipient=address,
                     subject=subject,
                     message=message,
-                    file=file if file else None,  # Uloženie súboru iba ak existuje
+                    file=file if file else None,  
                 )
                 result = 'Email bol poslaný!'
             except Exception as e:
