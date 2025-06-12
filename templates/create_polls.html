@@ -102,7 +102,6 @@
 </style>
 {% if request.user.is_authenticated %}
     <div class="polls">
-        <!-- Zobrazenie chybových správ tesne nad formulárom -->
         {% if error_message %}
             <p class="error-message">{{ error_message }}</p>
         {% endif %}
