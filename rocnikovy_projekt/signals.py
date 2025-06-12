@@ -2,6 +2,7 @@ from django.contrib.auth.signals import user_login_failed
 from django.core.mail import send_mail
 from django.dispatch import receiver
 from django.contrib import messages
+from django.conf import settings
 
 @receiver(user_login_failed)
 def login_failed(sender, credentials, request, **kwargs):
@@ -22,8 +23,8 @@ def login_failed(sender, credentials, request, **kwargs):
         send_mail(
             "Pokus o prihlásenie",
             f"Používateľ  '{username}' sa pokúšal neúspešne prihlásiť.",
-            "stredak.michael@gmail.com",  
-            ["stredak.michael@gmail.com"],  
+            settings.DEFAULT_FROM_EMAIL,  
+            [settings.DEFAULT_FROM_EMAIL],  
             fail_silently=False,
         )
 

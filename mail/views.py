@@ -1,6 +1,7 @@
 from django.core.mail import EmailMessage
 from django.shortcuts import render
 from .models import SentEmail
+from django.conf import settings
 
 def send_mail_page(request):
     result = None  
@@ -19,7 +20,7 @@ def send_mail_page(request):
                 email = EmailMessage(
                     subject=subject,
                     body=message,
-                    from_email='stredak.michael@gmail.com',
+                    from_email=settings.DEFAULT_FROM_EMAIL,
                     to=[address],
                     reply_to=[user_email],
                 )

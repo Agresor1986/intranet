@@ -48,6 +48,12 @@ jobs:
           echo "Vytváram priečinok na Google Drive..."
           rclone mkdir gdrive:zaloha || { echo "Chyba pri vytváraní priečinka"; exit 1; }
 
+      - name: Delete backups older than 1 month
+        run: |
+          echo "Mažem zálohy staršie ako 1 mesiac..."
+          rclone delete gdrive:zaloha --min-age 30d --include "*.tar.gz" || { echo "Chyba pri mazaní starých záloh"; exit 1; }
+          echo "Staré zálohy úspešne vymazané."
+
       - name: Archive and upload part 1 (templates, static, media)
         run: |
           echo "Vytváram archív časti 1 (templates, static, media)..."
