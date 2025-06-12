@@ -102,25 +102,24 @@
         }
     </style>
     
-    <div class="content-area">  <!-- Kontajner pre obsah sekcie. -->
-        <h2 class="section-title">Vaše upozornenia</h2>  <!-- Názov sekcie. -->
-        <!-- Tlačidlo pre označenie všetkých notifikácií ako prečítaných. -->
+    <div class="content-area"> 
+        <h2 class="section-title">Vaše upozornenia</h2>  
         <a href="{% url 'mark_all_as_read' %}" class="mark-all-button">Označiť všetko ako prečítané</a>
         
-        <ul class="notification-list">  <!-- Zoznam pre notifikácie. -->
-            {% for notification in notifications %}  <!-- Pre každú notifikáciu. -->
+        <ul class="notification-list"> 
+            {% for notification in notifications %}  
                 <li class="notification-item">
-                    {% if notification.url %}  <!-- Ak má notifikácia URL. -->
-                        <span class="notification-message">{{ notification.message|safe }}  <!-- Použitie |safe -->
+                    {% if notification.url %}  
+                        <span class="notification-message">{{ notification.message|safe }}  
                         <a href="{{ notification.url }}" class="go-to-link">Pozrieť</a></span>
                     {% else %}
-                        <span class="notification-message">{{ notification.message|safe }}</span>  <!-- Použitie |safe -->
+                        <span class="notification-message">{{ notification.message|safe }}</span>  
                     {% endif %}
                     <span class="timestamp">({{ notification.timestamp|date:"d.m.Y H:i" }})</span>
                     <a href="{% url 'mark_as_read' notification.id %}" class="mark-read-link">Označiť ako prečítané</a>
                 </li>
             {% empty %}
-                <li class="no-notifications">Žiadne nové upozornenia</li>  <!-- Ak nie sú žiadne notifikácie. -->
+                <li class="no-notifications">Žiadne nové upozornenia</li>  
             {% endfor %}
         </ul>
     </div>
