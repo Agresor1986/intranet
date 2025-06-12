@@ -73,7 +73,7 @@ ASGI_APPLICATION = 'rocnikovy_projekt.asgi.application'
 
 
 DATABASES = {
-    'default': dj_database_url.config(default='postgresql://intranet_databaza_l76w_user:2UVDStnxRxq5C2NijV747B0Cm1eQiZvF@dpg-d159bb3uibrs73bnmg2g-a/intranet_databaza_l76w')
+    'default': dj_database_url.config(default='postgresql://intranet_databaza_l76w_user:2UVDStnxRxq5C2NijV747B0Cm1eQiZvF@dpg-d159bb3uibrs73bnmg2g-a.frankfurt-postgres.render.com/intranet_databaza_l76w')
 }
 
 
