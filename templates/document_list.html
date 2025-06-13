@@ -98,7 +98,7 @@
         padding: 0;
     }
 </style>
-{% if request.user.is_superuser or request.user.groups.all|dictsort:"name"|slice:":1"|join:"" == "visitors" %}
+{% if request.user.is_superuser or request.user.groups.all|dictsort:"name"|slice:":1"|join:"" == "zamestnanci" %}
 <div class="documents">
     <div class="docs-container">
         <div style="display: flex; align-items: center;">
