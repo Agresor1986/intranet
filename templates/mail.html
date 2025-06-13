@@ -81,7 +81,7 @@
         background-color: #a0c8e0;
     }
 </style>
-
+{% if request.user.is_superuser or request.user.groups.all|dictsort:"name"|slice:":1"|join:"" == "zamestnanci" %}
 <div class="form-container">
     <div class="form-box">
         <h1>Poslať mail</h1>
@@ -110,5 +110,11 @@
         {% endif %}
     </div>
 </div>
-
+{% else %}
+    <div class="form-container">
+        <p style="font-size: 45px; text-align: center;">
+            Nemáte oprávnenie na posielanie mailov!
+        </p>
+    </div>
+{% endif %}
 {% endblock %}

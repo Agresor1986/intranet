@@ -98,14 +98,15 @@
         padding: 0;
     }
 </style>
-{% if request.user.is_superuser or request.user.groups.all|dictsort:"name"|slice:":1"|join:"" == "zamestnanci" %}
+
 <div class="documents">
     <div class="docs-container">
         <div style="display: flex; align-items: center;">
             <h2>Dokumenty</h2>  <!-- Hlavný nadpis stránky -->
             <!-- Tlačidlo pre presmerovanie -->
-            
-            <a href="{% url 'upload_document' %}" class="btn btn-upload">Vložiť dokument</a>
+            {% if request.user.is_superuser or request.user.groups.all|dictsort:"name"|slice:":1"|join:"" == "zamestnanci" %}
+                <a href="{% url 'upload_document' %}" class="btn btn-upload">Vložiť dokument</a>
+            {% endif %}
         </div>
         <ul>
             {% for document in documents %}  
@@ -134,7 +135,7 @@
         </ul>
     </div>
 </div>
-{% endif %}
+
 {% endblock %}
 
 

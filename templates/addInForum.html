@@ -97,7 +97,9 @@
                 <textarea name="description" rows="5" cols="40">{{ form.description.value|default:'' }}</textarea>
             </p>
             <p>{{ form.link.label_tag }} {{ form.link }}</p>
-            <p>{{ form.file.label_tag }} {{ form.file }}</p> 
+            {% if request.user.is_superuser or request.user.groups.all|dictsort:"name"|slice:":1"|join:"" == "zamestnanci" %}
+                <p>{{ form.file.label_tag }} {{ form.file }}</p> 
+            {% endif %}
             <div class="button-container">
                 <input type="submit" class="btn btn-success" value="Vytvoriť">
                 <a class="btn btn-frm" href="{% url 'forum' %}">Naspäť</a>
